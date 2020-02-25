@@ -186,7 +186,6 @@ void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 		if (!found && CheckHover((Gdiplus::Point*) &decoded_objects[i].location[0], x, y)) {
 			found = true;
 			hover_state[i] = true;
-			break;
 		}
 		else {
 			hover_state[i] = false;
