@@ -435,13 +435,11 @@ void MainWnd::SetFullScreen()
 	ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 	SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
-
 }
 
 void MainWnd::HideWindow()
 {
 	ShowWindow(hwnd, SW_HIDE);
-	KillTimer(hwnd, TIMER_EVENTS::ID1); // stops the timer
 	KillTimer(hwnd, TIMER_EVENTS::ID2);
 	is_capture_window_shown = false;
 }
