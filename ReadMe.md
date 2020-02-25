@@ -46,7 +46,7 @@ Color scheme and key bindings can be configured via a json formatted config file
  }
 ```
 
-For detailed explanations of the parameters, refer to the comments in [config.json](./config.json).
+For detailed explanations of the parameters, refer to the comments in [config.json](./QRUtil/config.json).
 
 ## Build
 

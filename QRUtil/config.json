@@ -1,5 +1,5 @@
-// default configuration
-// QRUtil will fallback to the internally hard-coded default configuration upon config parsing failure.
+// -- default configuration file with default settings --
+// QRUtil will fall back to the internal hard-coded config upon parsing failure on this file
 {
     "COLOR":{ // the color format is AARRGGBB in hexadecimal form
        "T_DARK":"46000000", // a dark color that covers the entire screen
