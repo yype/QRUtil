@@ -1,0 +1,25 @@
+// default configuration
+// QRUtil will fallback to the internally hard-coded default configuration upon config parsing failure.
+{
+    "COLOR":{ // the color format is AARRGGBB in hexadecimal form
+       "T_DARK":"46000000", // a dark color that covers the entire screen
+       "T_QR_BOARDER":"FF007ACC",
+       "BOARDER_THICKNESS":2.0, 
+       "T_QR_NO_HOVER":"1E007ACC",
+       "T_QR_HOVER":"64007ACC",
+       "QR_TEXT_BACKGROUND":"50000000",
+       "QR_TEXT_COLOR":"FFFFFFFF"
+    },
+    "HOTKEY":{ // hot key for capturing QR codes
+       "CTRL":true,
+       "ALT":true,
+       "SHIFT":true,
+       "VKEY":"I" // https://docs.microsoft.com/windows/desktop/inputdev/virtual-key-codes
+    },
+    "KEY":{ // define the function of keys pressed on the capture screen
+       "SELECT_ALL":"A", // KEYs are not case-sensitive
+       "DESELECT_ALL":"D",
+       "COPY_SELECTED":"C",
+       "EXIT_PROGRAM": "71" // hexidecimal form of the virtual key code, in this case 0x71(F2)
+    }
+ }
