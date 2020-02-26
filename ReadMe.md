@@ -2,7 +2,7 @@
 
 Screen QR code scanning utility for Windows.
 
-## Rec.
+## Rec
 
 ![rec](ReadMe/rec.gif)
 
@@ -66,6 +66,10 @@ Copy x64 libs from [ZBarWin64](https://github.com/dani4/ZBarWin64/tree/master/li
 **Build**
 
 Open `Proj.sln` with Visual Studio 2019 and go building.
+
+## Todo
+
+- Support decoding on a manually selected range when auto-detection's got a problem.
 
 ## License
 
