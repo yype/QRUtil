@@ -15,16 +15,25 @@ using namespace zbar;
 
 class Detector {
 public:
-	typedef struct
+	struct DecodedObject
 	{
 		string type;
 		string data;
 		vector <cv::Point> location;
-	} DecodedObject;
+		bool operator==(const DecodedObject& right) const {
+			if ((this->type == right.type) && (this->data == right.data)) {
+				return true;
+			}
+			return false;
+		};
+	} ;
 	int DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& decoded_objects);
 
 	Detector();
 	~Detector();
+
+	
+
 private:
 	Mat DC2Mat(HDC hdc, int src_width, int src_height);
 };

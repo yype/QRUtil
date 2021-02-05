@@ -69,7 +69,8 @@ Open `Proj.sln` with Visual Studio 2019 and go building.
 
 ## Todo
 
-- Support decoding on a manually selected range when auto-detection's got a problem.
+- [ ] Support decoding on a manually selected range when auto-detection's got a problem.
+- [ ] Multi-thread support.
 
 ## License
 

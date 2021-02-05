@@ -11,34 +11,50 @@ int Detector::DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& de
 
 	// convert image to grayscale
 	Mat imGray;
-	cvtColor(im, imGray, cv::COLOR_RGBA2GRAY);
 
-	// wrap image data in a zbar image
-	Image image(im.cols, im.rows, "Y800", // 8 bit monochrome format 
-		reinterpret_cast<uchar*>(imGray.data), im.cols* im.rows);
+	for (int thrd = 5; thrd < 255; thrd+=50) {
+		cvtColor(im, imGray, cv::COLOR_RGBA2GRAY);
+		//blur(imGray, imGray, Size(3, 3));
+		//equalizeHist(imGray, imGray);
+		threshold(imGray, imGray, thrd, 255, THRESH_BINARY);
+		//cv::adaptiveThreshold(imGray, imGray, 255, ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 33, 0);
 
-	// scan the image for barcodes and QRCodes
-	int n = scanner.scan(image);
+		// wrap image data in a zbar image
+		Image image(im.cols, im.rows, "Y800", // 8 bit monochrome format 
+			reinterpret_cast<uchar*>(imGray.data), im.cols * im.rows);
 
-	for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {
-		DecodedObject obj;
+		// scan the image for barcodes and QRCodes
+		int n = scanner.scan(image);
 
-		obj.type = symbol->get_type_name();
-		obj.data = symbol->get_data();
+		for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {
+			DecodedObject obj;
 
-		for (int i = 0; i < symbol->get_location_size(); i++) {
-			Point tmp = Point(symbol->get_location_x(i), symbol->get_location_y(i));
-			cout << "Point " << i << " : " << tmp.x << ", " << tmp.y << endl;
-			obj.location.push_back(tmp);
+			obj.type = symbol->get_type_name();
+			obj.data = symbol->get_data();
+
+			for (int i = 0; i < symbol->get_location_size(); i++) {
+				Point tmp = Point(symbol->get_location_x(i), symbol->get_location_y(i));
+				cout << "Point " << i << " : " << tmp.x << ", " << tmp.y << endl;
+				obj.location.push_back(tmp);
+			}
+
+			const Point* pts = reinterpret_cast<const cv::Point*>(Mat(obj.location).data);
+			int npts = Mat(obj.location).rows;
+			polylines(im, &pts, &npts, 1, true, Scalar(0, 0, 255), 2);
+
+			cout << endl;
+
+			bool found = false;
+			for (auto& each : decoded_objects) {
+				if (each == obj) {
+					found = true;
+				}
+			}
+			if (!found)
+				decoded_objects.push_back(obj);
 		}
-
-		const Point* pts = reinterpret_cast<const cv::Point*>(Mat(obj.location).data);
-		int npts = Mat(obj.location).rows;
-		polylines(im, &pts, &npts, 1, true, Scalar(0, 0, 255), 2);
-
-		cout << endl;
-		decoded_objects.push_back(obj);
 	}
+	
 
 	return 0;
 }

@@ -162,9 +162,9 @@ void MainWnd::ShowCaptureWindow()
 	if (hover_state) delete(hover_state);
 	if (select_state) delete(select_state);
 
-
-	this->DetectQRCodes();
 	this->SetFullScreen();
+	this->DetectQRCodes();
+	
 
 	// stay on top
 	SetTimer(hwnd, TIMER_EVENTS::ID2, this->timer2_interval, (TIMERPROC)this->OnTimer);
