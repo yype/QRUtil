@@ -79,7 +79,7 @@ bool MainWnd::CopySelectedQRData2Clipboard()
 			result += decoded_objects[i].data + "\n\n";
 		}
 	}
-	
+
 	if (result.length() != 0) {
 		result.pop_back(); // strip
 		result.pop_back();
@@ -112,7 +112,7 @@ bool MainWnd::SetClipboardText(string text)
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	wstring wide = converter.from_bytes(text.c_str());
 
-	size_t sz = (wide.length()+1) * sizeof(wchar_t) ;
+	size_t sz = (wide.length() + 1) * sizeof(wchar_t);
 	HGLOBAL hglb_copy = GlobalAlloc(GMEM_MOVEABLE, sz);
 	if (!hglb_copy) return false;
 	LPWSTR lpstr_copy = reinterpret_cast<LPWSTR>(GlobalLock(hglb_copy));
@@ -165,7 +165,7 @@ void MainWnd::ShowCaptureWindow()
 	this->SetFullScreen();
 	//this->DetectQRCodes();
 	this->BeginDetectQRCodes();
-	
+
 
 	// stay on top
 	SetTimer(hwnd, TIMER_EVENTS::ID2, this->timer2_interval, (TIMERPROC)this->OnTimer);
@@ -188,7 +188,7 @@ void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 	auto y = GET_Y_LPARAM(lParam);
 	bool found = false;
 	for (int i = 0; i < decoded_objects.size(); i++) {
-		if (!found && CheckHover((Gdiplus::Point*) &decoded_objects[i].location[0], x, y)) {
+		if (!found && CheckHover((Gdiplus::Point*) & decoded_objects[i].location[0], x, y)) {
 			found = true;
 			hover_state[i] = true;
 		}
@@ -199,7 +199,7 @@ void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 	RefreshWindow();
 }
 
-void MainWnd::OnLButtonDown(WPARAM wParam, LPARAM lParam) 
+void MainWnd::OnLButtonDown(WPARAM wParam, LPARAM lParam)
 {
 	if (!detect_qr_lock.try_lock()) {
 		return;
@@ -299,7 +299,7 @@ void MainWnd::ParseConfig()
 					return;
 				}
 			}
-			catch (exception & e) {
+			catch (exception& e) {
 				std::wstring wide = converter.from_bytes(e.what());
 				error_msg += wide;
 			}
@@ -372,13 +372,51 @@ void MainWnd::CaptureScreen()
 {
 	GetScreenRes(screen_height, screen_width);
 	HDC hdc = GetDC(NULL);
-	screen_hdc = CreateCompatibleDC(hdc);
-	if (hbDesktop) {
-		DeleteObject(hbDesktop);
+	if (screen_hdc) {
+		ReleaseDC(NULL, screen_hdc);
+		screen_hdc = nullptr;
 	}
-	hbDesktop = CreateCompatibleBitmap(hdc, screen_width, screen_height);
-	SelectObject(screen_hdc, hbDesktop);
+	if (hdc_used_to_detect_qrcodes) {
+		ReleaseDC(NULL, hdc_used_to_detect_qrcodes);
+		hdc_used_to_detect_qrcodes = nullptr;
+	}
+	if (displayed_screen_hdc) {
+		ReleaseDC(NULL, displayed_screen_hdc);
+		displayed_screen_hdc = nullptr;
+	}
+
+	screen_hdc = CreateCompatibleDC(hdc);
+	hdc_used_to_detect_qrcodes = CreateCompatibleDC(hdc);
+	displayed_screen_hdc = CreateCompatibleDC(hdc);
+
+	if (hbDesktop_screen_hdc) {
+		DeleteObject(hbDesktop_screen_hdc);
+		hbDesktop_screen_hdc = nullptr;
+	}
+	if (hbDesktop_hdc_used_to_detect_qrcodes) {
+		DeleteObject(hbDesktop_hdc_used_to_detect_qrcodes);
+		hbDesktop_hdc_used_to_detect_qrcodes = nullptr;
+	}
+	if (hbDesktop_displayed_screen_hdc) {
+		DeleteObject(hbDesktop_displayed_screen_hdc);
+		hbDesktop_displayed_screen_hdc = nullptr;
+	}
+
+	hbDesktop_screen_hdc = CreateCompatibleBitmap(hdc, screen_width, screen_height);
+	hbDesktop_hdc_used_to_detect_qrcodes = CreateCompatibleBitmap(hdc, screen_width, screen_height);
+	hbDesktop_displayed_screen_hdc = CreateCompatibleBitmap(hdc, screen_width, screen_height);
+
+	SelectObject(screen_hdc, hbDesktop_screen_hdc);
+	SelectObject(hdc_used_to_detect_qrcodes, hbDesktop_hdc_used_to_detect_qrcodes);
+	SelectObject(displayed_screen_hdc, hbDesktop_displayed_screen_hdc);
+
 	BitBlt(screen_hdc, 0, 0, screen_width, screen_height, hdc, 0, 0, SRCCOPY);
+	BitBlt(hdc_used_to_detect_qrcodes, 0, 0, screen_width, screen_height, hdc, 0, 0, SRCCOPY);
+	BitBlt(displayed_screen_hdc, 0, 0, screen_width, screen_height, hdc, 0, 0, SRCCOPY);
+
+	zoom_center_x = screen_width / 2;
+	zoom_center_y = screen_height / 2;
+	zoom_percentage = 1;
 
 #ifdef DEBUG
 	Bitmap bmp(hbDesktop, 0);
@@ -390,6 +428,7 @@ void MainWnd::CaptureScreen()
 #endif
 
 	ReleaseDC(NULL, hdc);
+	// MessageBox(0, L"done", L"none", MB_OK);
 }
 
 void MainWnd::DetectQRCodes()
@@ -398,7 +437,7 @@ void MainWnd::DetectQRCodes()
 		return;
 	}
 	Detector dt;
-	dt.DetectQR(screen_hdc, screen_width, screen_height, decoded_objects);
+	dt.DetectQR(hdc_used_to_detect_qrcodes, screen_width, screen_height, decoded_objects);
 	hover_state = new bool[decoded_objects.size()];
 	ZeroMemory(hover_state, decoded_objects.size() * sizeof(bool));
 	select_state = new bool[decoded_objects.size()];
@@ -442,7 +481,7 @@ void MainWnd::RegClass()
 	wc.hInstance = hInstance;
 	wc.lpszClassName = CLASS_NAME;
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.hbrBackground = CreatePatternBrush(hbDesktop); // use the captured screen as the background image
+	wc.hbrBackground = CreatePatternBrush(hbDesktop_screen_hdc); // use the captured screen as the background image
 	RegisterClass(&wc);
 }
 
@@ -475,10 +514,18 @@ void MainWnd::GetScreenRes(int& height, int& width)
 
 void MainWnd::OnPaint(HDC hdc)
 {
-	
+
 
 	// captured screen
-	BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, this->screen_hdc, 0, 0, SRCCOPY);
+	// BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, this->screen_hdc, 0, 0, SRCCOPY);
+
+	auto ret = StretchBlt(hdc, zoom_center_x * (1 - zoom_percentage),
+		zoom_center_y * (1 - zoom_percentage),
+		screen_width * zoom_percentage,
+		screen_height * zoom_percentage,
+		displayed_screen_hdc, 0, 0, screen_width, screen_height, SRCCOPY
+	);
+
 
 	Gdiplus::Graphics graphics(hdc);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -486,21 +533,21 @@ void MainWnd::OnPaint(HDC hdc)
 	// dark hover
 	Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
 	graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
-
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+
+	if (!detect_qr_lock.try_lock()) {
+		if (ret)
+			SetHintText(graphics, "Detecting...");
+		else
+			SetHintText(graphics, "Error...");
+		return;
+	}
+	detect_qr_lock.unlock();
 
 	Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
 	Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
 	Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
 	Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
-	
-
-	if (!detect_qr_lock.try_lock()) {
-		SetHintText(graphics, "Detecting...");
-		RefreshWindow();
-		return;
-	}
-	detect_qr_lock.unlock();
 
 	for (int i = 0; i < decoded_objects.size(); i++) {
 		Gdiplus::Point* p = reinterpret_cast<Gdiplus::Point*>(&decoded_objects[i].location[0]);
@@ -660,6 +707,7 @@ LRESULT MainWnd::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		DeleteObject(hBmp);
 		DeleteObject(hMemDc);
 		EndPaint(hwnd, &ps);
+		g_this->RefreshWindow();
 		break;
 	}
 	}

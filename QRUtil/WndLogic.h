@@ -71,7 +71,7 @@ private:
 		LPARAM lParam
 	);
 
-	const wchar_t *CAPTION_NAME = L"QRUtil";
+	const wchar_t* CAPTION_NAME = L"QRUtil";
 	HWND invisible_parent_window;
 	bool is_capture_window_shown = false;
 	bool is_showing_msgbox = NULL;
@@ -79,10 +79,17 @@ private:
 	int screen_height = 0;
 	const int timer1_interval = 30;
 	const int timer2_interval = 300;
-	wchar_t CLASS_NAME[MAX_CLASS_NAME]; 
+	wchar_t CLASS_NAME[MAX_CLASS_NAME];
 	HINSTANCE hInstance;
-	HDC screen_hdc;
-	HBITMAP hbDesktop;
+	HDC screen_hdc = nullptr; // the original captured screen, not zoomed
+	HDC hdc_used_to_detect_qrcodes = nullptr; // perform detection on this DC
+	HDC displayed_screen_hdc = nullptr; // the hdc being drawn
+	float zoom_percentage = 1.00;
+	int zoom_center_x = 0, zoom_center_y = 0;
+
+	HBITMAP hbDesktop_screen_hdc=nullptr;
+	HBITMAP hbDesktop_hdc_used_to_detect_qrcodes= nullptr;
+	HBITMAP hbDesktop_displayed_screen_hdc= nullptr;
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR           gdiplusToken;
 	enum TIMER_EVENTS {
@@ -92,7 +99,7 @@ private:
 	vector<Detector::DecodedObject> decoded_objects;
 	bool* hover_state = nullptr;
 	bool* select_state = nullptr;
-	
+
 	// Configurable parameters
 	Gdiplus::Color T_DARK;
 	Gdiplus::Color T_QR_BOARDER;
