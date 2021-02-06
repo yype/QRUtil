@@ -69,8 +69,8 @@ Open `Proj.sln` with Visual Studio 2019 and go building.
 
 ## Todo
 
+- [x] Multi-thread support.
 - [ ] Support decoding on a manually selected range when auto-detection's got a problem.
-- [ ] Multi-thread support.
 
 ## License
 

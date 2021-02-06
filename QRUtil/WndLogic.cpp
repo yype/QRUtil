@@ -163,7 +163,8 @@ void MainWnd::ShowCaptureWindow()
 	if (select_state) delete(select_state);
 
 	this->SetFullScreen();
-	this->DetectQRCodes();
+	//this->DetectQRCodes();
+	this->BeginDetectQRCodes();
 	
 
 	// stay on top
@@ -179,6 +180,10 @@ void MainWnd::RefreshWindow()
 
 void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 {
+	if (!detect_qr_lock.try_lock()) {
+		return;
+	}
+	detect_qr_lock.unlock();
 	auto x = GET_X_LPARAM(lParam);
 	auto y = GET_Y_LPARAM(lParam);
 	bool found = false;
@@ -196,6 +201,10 @@ void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 
 void MainWnd::OnLButtonDown(WPARAM wParam, LPARAM lParam) 
 {
+	if (!detect_qr_lock.try_lock()) {
+		return;
+	}
+	detect_qr_lock.unlock();
 	auto x = GET_X_LPARAM(lParam);
 	auto y = GET_Y_LPARAM(lParam);
 	for (int i = 0; i < decoded_objects.size(); i++) {
@@ -209,6 +218,10 @@ void MainWnd::OnLButtonDown(WPARAM wParam, LPARAM lParam)
 
 void MainWnd::OnRButtonDown(WPARAM wParam, LPARAM lParam)
 {
+	if (!detect_qr_lock.try_lock()) {
+		return;
+	}
+	detect_qr_lock.unlock();
 	auto x = GET_X_LPARAM(lParam);
 	auto y = GET_Y_LPARAM(lParam);
 	for (int i = 0; i < decoded_objects.size(); i++) {
@@ -381,12 +394,22 @@ void MainWnd::CaptureScreen()
 
 void MainWnd::DetectQRCodes()
 {
+	if (!detect_qr_lock.try_lock()) {
+		return;
+	}
 	Detector dt;
 	dt.DetectQR(screen_hdc, screen_width, screen_height, decoded_objects);
 	hover_state = new bool[decoded_objects.size()];
 	ZeroMemory(hover_state, decoded_objects.size() * sizeof(bool));
 	select_state = new bool[decoded_objects.size()];
 	ZeroMemory(select_state, decoded_objects.size() * sizeof(bool));
+	detect_qr_lock.unlock();
+	RefreshWindow();
+}
+
+void MainWnd::BeginDetectQRCodes()
+{
+	std::thread([this] { this->DetectQRCodes(); }).detach();
 }
 
 bool MainWnd::CrWindow()
@@ -452,6 +475,7 @@ void MainWnd::GetScreenRes(int& height, int& width)
 
 void MainWnd::OnPaint(HDC hdc)
 {
+	
 
 	// captured screen
 	BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, this->screen_hdc, 0, 0, SRCCOPY);
@@ -468,8 +492,15 @@ void MainWnd::OnPaint(HDC hdc)
 	Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
 	Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
 	Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
-	Gdiplus::SolidBrush qr_text_background(QR_TEXT_BACKGROUND);
 	Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
+	
+
+	if (!detect_qr_lock.try_lock()) {
+		SetHintText(graphics, "Detecting...");
+		RefreshWindow();
+		return;
+	}
+	detect_qr_lock.unlock();
 
 	for (int i = 0; i < decoded_objects.size(); i++) {
 		Gdiplus::Point* p = reinterpret_cast<Gdiplus::Point*>(&decoded_objects[i].location[0]);
@@ -486,35 +517,39 @@ void MainWnd::OnPaint(HDC hdc)
 	}
 	for (int i = 0; i < decoded_objects.size(); i++) {
 		if (hover_state[i]) {
-
-			FontFamily   fontFamily(L"Microsoft YaHei");
-			Font         font(&fontFamily, 36, FontStyleBold, UnitPoint);
-			RectF        rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
-			RectF outrect;
-			SolidBrush   solidBrush(QR_TEXT_COLOR);
-			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-			std::wstring wide = converter.from_bytes(decoded_objects[i].data.c_str());
-
-			while (true) {
-				// trim the text
-				graphics.MeasureString(wide.c_str(), static_cast<int>(wide.length()), &font, rectF, &outrect);
-				int right = static_cast<int>(outrect.GetRight());
-				if (right < screen_width) {
-					break;
-				}
-				wide.pop_back();
-				wide[wide.length() - 1] = '.';
-				wide[wide.length() - 2] = '.';
-				wide[wide.length() - 3] = '.';
-			}
-
-			outrect.Width = static_cast<REAL>(screen_width);
-			graphics.FillRectangle(&qr_text_background, outrect);
-			graphics.DrawString(wide.c_str(), -1, &font, outrect, NULL, &solidBrush);
-
+			SetHintText(graphics, decoded_objects[i].data);
 			break;
 		}
 	}
+}
+
+void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
+{
+	Gdiplus::SolidBrush qr_text_background(QR_TEXT_BACKGROUND);
+	FontFamily   fontFamily(L"Microsoft YaHei");
+	Font         font(&fontFamily, 36, FontStyleBold, UnitPoint);
+	RectF        rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
+	RectF outrect;
+	SolidBrush   solidBrush(QR_TEXT_COLOR);
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::wstring wide = converter.from_bytes(text.c_str());
+
+	while (true) {
+		// trim the text
+		graphics.MeasureString(wide.c_str(), static_cast<int>(wide.length()), &font, rectF, &outrect);
+		int right = static_cast<int>(outrect.GetRight());
+		if (right < screen_width) {
+			break;
+		}
+		wide.pop_back();
+		wide[wide.length() - 1] = '.';
+		wide[wide.length() - 2] = '.';
+		wide[wide.length() - 3] = '.';
+	}
+
+	outrect.Width = static_cast<REAL>(screen_width);
+	graphics.FillRectangle(&qr_text_background, outrect);
+	graphics.DrawString(wide.c_str(), -1, &font, outrect, NULL, &solidBrush);
 }
 
 bool MainWnd::CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y)

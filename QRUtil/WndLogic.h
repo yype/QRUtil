@@ -13,6 +13,8 @@
 #include <sstream>
 #include <exception>
 #include <cctype>
+#include <thread>
+#include <mutex>
 
 #include "Detector.h"
 #pragma comment(lib, "gdiplus.lib")
@@ -47,12 +49,14 @@ private:
 	void ShutdownGdiPlus();
 	void CaptureScreen();
 	void DetectQRCodes();
+	void BeginDetectQRCodes();
 	bool CrWindow();
 	void RegClass();
 	void SetFullScreen();
 	void HideWindow();
 	void GetScreenRes(int& height, int& width);
 	void OnPaint(HDC hdc);
+	void SetHintText(Gdiplus::Graphics& graphics, std::string text);
 	bool CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y);
 	static void OnTimer(
 		HWND hwnd,
@@ -107,6 +111,7 @@ private:
 	UINT key_exit_program;
 	wstring config_filename;
 
+	std::mutex detect_qr_lock;
 
 	static MainWnd* g_this;
 
