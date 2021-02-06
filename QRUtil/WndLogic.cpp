@@ -188,7 +188,7 @@ void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 	auto y = GET_Y_LPARAM(lParam);
 	bool found = false;
 	for (int i = 0; i < decoded_objects.size(); i++) {
-		if (!found && CheckHover((Gdiplus::Point*) & decoded_objects[i].location[0], x, y)) {
+		if (!found && CheckHover((Gdiplus::Point*)(&decoded_objects[i].location[0]), x, y)) {
 			found = true;
 			hover_state[i] = true;
 		}
