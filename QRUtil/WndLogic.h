@@ -85,11 +85,9 @@ private:
 	HBITMAP hbDesktop_screen_hdc = nullptr;
 	HBITMAP hbDesktop_hdc_used_to_detect_qrcodes = nullptr;
 	HBITMAP hbDesktop_displayed_screen_hdc = nullptr;
-	HDC screen_hdc = nullptr; // the original captured screen, not zoomed
+	HDC screen_hdc = nullptr; // the original captured screen
 	HDC hdc_used_to_detect_qrcodes = nullptr; // perform detection on this DC
 	HDC displayed_screen_hdc = nullptr; // the hdc being drawn
-	float zoom_percentage = 1.00;
-	int zoom_center_x = 0, zoom_center_y = 0;
 
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR           gdiplusToken;
@@ -120,6 +118,7 @@ private:
 	wstring config_filename;
 
 	std::mutex detect_qr_lock;
+	std::mutex decoded_objects_mutex;
 
 	static MainWnd* g_this;
 

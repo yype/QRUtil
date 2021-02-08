@@ -1,6 +1,6 @@
 #include "Detector.h"
 
-int Detector::DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& decoded_objects)
+int Detector::DetectQR(HDC hdc, int width, int height, int thrd, vector<DecodedObject>& decoded_objects)
 {
 	Mat im = DC2Mat(hdc, width, height);
 	// create zbar scanner
@@ -12,7 +12,7 @@ int Detector::DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& de
 	// convert image to grayscale
 	Mat imGray;
 
-	for (int thrd = 5; thrd < 255; thrd+=50) {
+	//for (int thrd = 5; thrd < 255; thrd+=5) {
 		cvtColor(im, imGray, cv::COLOR_RGBA2GRAY);
 		//blur(imGray, imGray, Size(3, 3));
 		//equalizeHist(imGray, imGray);
@@ -53,7 +53,7 @@ int Detector::DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& de
 			if (!found)
 				decoded_objects.push_back(obj);
 		}
-	}
+	//}
 	
 
 	return 0;

@@ -22,12 +22,20 @@ public:
 		vector <cv::Point> location;
 		bool operator==(const DecodedObject& right) const {
 			if ((this->type == right.type) && (this->data == right.data)) {
+				for (int i = 0; i < 4;i++) {
+					if (abs(location[i].x - right.location[i].x) > 4) {
+						return false;
+					}
+					if (abs(location[i].y - right.location[i].y) > 4) {
+						return false;
+					}
+				}
 				return true;
 			}
 			return false;
 		};
 	} ;
-	int DetectQR(HDC hdc, int width, int height, vector<DecodedObject>& decoded_objects);
+	int DetectQR(HDC hdc, int width, int height, int thrd, vector<DecodedObject>& decoded_objects);
 
 	Detector();
 	~Detector();
