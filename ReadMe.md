@@ -69,7 +69,7 @@ Open `Proj.sln` with Visual Studio 2019 and go building.
 
 ## Todo
 
-- [x] Multi-thread support.
+- [x] Multi-thread support. Currently the scanner will keep scanning in the background using different parameters, new results will be pushed to the UI.
 - [ ] Support decoding on a manually selected range when auto-detection's got a problem.
 
 ## License
