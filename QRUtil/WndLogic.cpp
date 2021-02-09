@@ -91,6 +91,21 @@ bool MainWnd::CopySelectedQRData2Clipboard()
 
 }
 
+void MainWnd::SwitchMode()
+{
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		current_mode = DETECT_MODE::MANUAL_DETECT;
+		starting_point = ending_point;
+		waiting_for_ending_point = false;
+		successfully_detected = false;
+	}
+	else {
+		decoded_objects.clear();
+		current_mode = DETECT_MODE::AUTO_DETECT;
+		this->BeginDetectQRCodes();
+	}
+}
+
 void MainWnd::SelectAllQRCodes(bool select)
 {
 	for (int i = 0; i < decoded_objects.size(); i++) {
@@ -351,12 +366,15 @@ void MainWnd::ParseConfig()
 			try {
 				bool success = true;
 
-				success &= ARGBString2Color(root["COLOR"]["T_DARK"].asString(), T_DARK);
-				success &= ARGBString2Color(root["COLOR"]["T_QR_BOARDER"].asString(), T_QR_BOARDER);
-				success &= ARGBString2Color(root["COLOR"]["T_QR_NO_HOVER"].asString(), T_QR_NO_HOVER);
-				success &= ARGBString2Color(root["COLOR"]["T_QR_HOVER"].asString(), T_QR_HOVER);
+				success &= ARGBString2Color(root["COLOR"]["DARK_COVER"].asString(), DARK_COVER);
+				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_BOARDER"].asString(), AUTO_QR_BOARDER);
+				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_NO_HOVER"].asString(), AUTO_QR_NO_HOVER);
+				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_HOVER"].asString(), AUTO_QR_HOVER);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_BACKGROUND"].asString(), QR_TEXT_BACKGROUND);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_COLOR"].asString(), QR_TEXT_COLOR);
+				success &= ARGBString2Color(root["COLOR"]["MANUAL_OK_COLOR"].asString(), MANUAL_OK_COLOR);
+				success &= ARGBString2Color(root["COLOR"]["MANUAL_NOT_OK_COLOR"].asString(), MANUAL_NOT_OK_COLOR);
+				success &= ARGBString2Color(root["COLOR"]["MANUAL_QR_BORDER"].asString(), MANUAL_QR_BORDER);
 				success &= root["COLOR"].isMember("BOARDER_THICKNESS");
 
 				// check key existence
@@ -371,6 +389,7 @@ void MainWnd::ParseConfig()
 				success &= root["KEY"].isMember("DESELECT_ALL");
 				success &= root["KEY"].isMember("COPY_SELECTED");
 				success &= root["KEY"].isMember("EXIT_PROGRAM");
+				success &= root["KEY"].isMember("SWITCH_MODE");
 
 				BOARDER_THICKNESS = root["COLOR"]["BOARDER_THICKNESS"].asFloat();
 				hotkey_ctrl = root["HOTKEY"]["CTRL"].asBool();
@@ -380,6 +399,8 @@ void MainWnd::ParseConfig()
 				key_select_all = root["KEY"]["SELECT_ALL"].asString()[0];
 				key_deselect_all = root["KEY"]["DESELECT_ALL"].asString()[0];
 				key_copy_selected = root["KEY"]["COPY_SELECTED"].asString()[0];
+				key_switch_mode = root["KEY"]["SWITCH_MODE"].asString()[0];
+
 				auto ep_key = root["KEY"]["EXIT_PROGRAM"].asString();
 				key_exit_program = stoul(ep_key, nullptr, 16) % 0x100;
 
@@ -405,11 +426,11 @@ void MainWnd::ParseConfig()
 
 void MainWnd::SetDefaultConfig()
 {
-	T_DARK = Gdiplus::Color(70, 0, 0, 0);
-	T_QR_BOARDER = Gdiplus::Color(255, 0, 122, 204);
-	T_QR_NO_HOVER = Gdiplus::Color(30, 0, 122, 204);
+	DARK_COVER = Gdiplus::Color(70, 0, 0, 0);
+	AUTO_QR_BOARDER = Gdiplus::Color(255, 0, 122, 204);
+	AUTO_QR_NO_HOVER = Gdiplus::Color(30, 0, 122, 204);
 	QR_TEXT_BACKGROUND = Gdiplus::Color(80, 0, 0, 0);
-	T_QR_HOVER = Gdiplus::Color(100, 0, 122, 204);
+	AUTO_QR_HOVER = Gdiplus::Color(100, 0, 122, 204);
 	QR_TEXT_COLOR = Gdiplus::Color(255, 255, 255, 255);
 	BOARDER_THICKNESS = 2.0f;
 	hotkey_ctrl = true;
@@ -611,7 +632,7 @@ void MainWnd::OnPaint(HDC hdc)
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 
 		// dark hover
-		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
+		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(DARK_COVER);
 		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
 		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 
@@ -656,9 +677,9 @@ void MainWnd::OnPaint(HDC hdc)
 
 
 
-		Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
-		Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
-		Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
+		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
+		Gdiplus::SolidBrush bs_no_hover(AUTO_QR_NO_HOVER);
+		Gdiplus::SolidBrush bs_hover(AUTO_QR_HOVER);
 		Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
 
 		for (int i = 0; i < sz; i++) {
@@ -694,15 +715,15 @@ void MainWnd::OnPaint(HDC hdc)
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 
 		// dark hover
-		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
+		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(DARK_COVER);
 		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
 		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 
-		Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
-		Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
-		Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
-		Gdiplus::SolidBrush bs_ok(Color(125, 23, 212, 107));
-		Gdiplus::SolidBrush bs_notok(Color(125, 221, 81, 69));
+		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
+		Gdiplus::SolidBrush bs_no_hover(AUTO_QR_NO_HOVER);
+		Gdiplus::SolidBrush bs_hover(AUTO_QR_HOVER);
+		Gdiplus::SolidBrush bs_ok(MANUAL_OK_COLOR);
+		Gdiplus::SolidBrush bs_notok(MANUAL_NOT_OK_COLOR);
 
 
 		if (starting_point != ending_point) {
@@ -805,19 +826,25 @@ LRESULT MainWnd::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CHAR:
 		if (tolower(static_cast<int>(wParam)) == tolower(static_cast<int>(g_this->key_copy_selected))) {
-			bool ret = g_this->CopySelectedQRData2Clipboard();
-			if (!ret) {
-				MessageBox(hwnd, L"Copy to clipboard failed.", g_this->CAPTION_NAME, MB_OK | MB_ICONEXCLAMATION);
+			if(g_this->current_mode == MainWnd::DETECT_MODE::AUTO_DETECT) {
+				bool ret = g_this->CopySelectedQRData2Clipboard();
+				if (!ret) {
+					MessageBox(hwnd, L"Copy to clipboard failed.", g_this->CAPTION_NAME, MB_OK | MB_ICONEXCLAMATION);
+				}
+				else {
+					g_this->HideWindow();
+				}
 			}
-			else {
-				g_this->HideWindow();
-			}
+			
 		}
 		if (tolower(static_cast<int>(wParam)) == tolower(static_cast<int>(g_this->key_select_all))) {
 			g_this->SelectAllQRCodes(true);
 		}
 		if (tolower(static_cast<int>(wParam)) == tolower(static_cast<int>(g_this->key_deselect_all))) {
 			g_this->SelectAllQRCodes(false);
+		}
+		if (tolower(static_cast<int>(wParam)) == tolower(static_cast<int>(g_this->key_switch_mode))) {
+			g_this->SwitchMode();
 		}
 		break;
 	case WM_KEYDOWN:

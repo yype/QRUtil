@@ -32,6 +32,7 @@ public:
 	bool init_error = false;
 private:
 	bool CopySelectedQRData2Clipboard();
+	void SwitchMode();
 	void SelectAllQRCodes(bool select);
 	bool SetClipboardText(string text);
 	bool ARGBString2Color(string s, Gdiplus::Color& color);
@@ -120,13 +121,17 @@ private:
 	// ------------------------------------------------
 
 	// Configurable parameters
-	Gdiplus::Color T_DARK;
-	Gdiplus::Color T_QR_BOARDER;
+	Gdiplus::Color DARK_COVER;
+	Gdiplus::Color AUTO_QR_BOARDER;
 	float BOARDER_THICKNESS;
-	Gdiplus::Color T_QR_NO_HOVER;
-	Gdiplus::Color T_QR_HOVER;
+	Gdiplus::Color AUTO_QR_NO_HOVER;
+	Gdiplus::Color AUTO_QR_HOVER;
 	Gdiplus::Color QR_TEXT_BACKGROUND;
 	Gdiplus::Color QR_TEXT_COLOR;
+	Gdiplus::Color MANUAL_OK_COLOR;
+	Gdiplus::Color MANUAL_NOT_OK_COLOR;
+	Gdiplus::Color MANUAL_QR_BORDER;
+
 	bool hotkey_ctrl;
 	bool hotkey_alt;
 	bool hotkey_shift;
@@ -135,6 +140,7 @@ private:
 	UINT key_deselect_all;
 	UINT key_copy_selected;
 	UINT key_exit_program;
+	UINT key_switch_mode;
 	wstring config_filename;
 
 	std::mutex detect_qr_lock;
