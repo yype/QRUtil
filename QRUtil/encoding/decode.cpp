@@ -51,7 +51,7 @@ namespace {
 					dest[len] = (((code1 & 0x0003ff) << 10) | (code2 & 0x0003ff)) + 0x010000;
 					i += 2;
 				}
-				else dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+				else dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 			}
 			else dest[len] = code1;
 		}
@@ -110,7 +110,7 @@ namespace {
 			}
 			// other errors
 			else if (b1 < 0xc2 || 0xfd < b1) {
-				dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+				dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 				continue;
 			}
 			// 2~6 bytes sequence
@@ -122,7 +122,7 @@ namespace {
 					for (int n = 1; n < bytes; ++n) {
 						b2 = src[i + n];
 						if (b2 < 0x80 || 0xbf < b2) {
-							dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+							dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 							p = false;
 							break;
 						}
@@ -172,7 +172,7 @@ namespace {
 				// end of text
 				if (b1 == 0x00) break;
 				// 2 bytes sequence
-				if (Encoding::jisx0201_2_unicode[b1] == Encoding::UNICODE_BAD_SEQUENCE) {
+				if (Encoding::jisx0201_2_unicode[b1] == (short)Encoding::UNICODE_BAD_SEQUENCE) {
 					if (++i >= src_size) break;
 					b2 = src[i];
 					// correct sequence
@@ -190,7 +190,7 @@ namespace {
 			// end of text
 			if (b1 == 0x00) break;
 			// 1 byte sequence (ASCII & JIS X 0201)
-			if (Encoding::jisx0201_2_unicode[b1] != Encoding::UNICODE_BAD_SEQUENCE)
+			if (Encoding::jisx0201_2_unicode[b1] != (short)Encoding::UNICODE_BAD_SEQUENCE)
 				dest[len] = Encoding::jisx0201_2_unicode[b1];
 			// 2 bytes sequence (JIS X 0208)
 			else {
@@ -209,7 +209,7 @@ namespace {
 				}
 				// bad sequence
 				else {
-					dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+					dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 					--i;
 				}
 			}
@@ -264,7 +264,7 @@ namespace {
 					dest[len] = Encoding::jisx0213_2_unicode[(b2 - 0xa1 + 94) * 94 + (b3 - 0xa1)];
 				// bad sequence
 				else {
-					dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+					dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 					i -= 2;
 				}
 			}
@@ -279,7 +279,7 @@ namespace {
 					dest[len] = Encoding::jisx0213_2_unicode[(b1 - 0xa1) * 94 + (b2 - 0xa1)];
 				// bad sequence
 				else {
-					dest[len] = Encoding::UNICODE_BAD_SEQUENCE;
+					dest[len] = (short)Encoding::UNICODE_BAD_SEQUENCE;
 					--i;
 				}
 			}

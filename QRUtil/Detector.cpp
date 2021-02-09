@@ -144,10 +144,12 @@ bool Detector::DetectQRWeChat(HDC hdc, int x1, int y1, int x2, int y2, std::stri
 	//cvtColor(im, imGray, cv::COLOR_RGBA2GRAY);
 
 	vector<Mat> points;
-	auto detector = wechat_qrcode::WeChatQRCode("E:\\opencv\\opencv\\newbuild\\downloads\\wechat_qrcode\\detect.prototxt",
-		"E:\\opencv\\opencv\\newbuild\\downloads\\wechat_qrcode\\detect.caffemodel",
-		"E:\\opencv\\opencv\\newbuild\\downloads\\wechat_qrcode\\sr.prototxt",
-		"E:\\opencv\\opencv\\newbuild\\downloads\\wechat_qrcode\\sr.caffemodel");
+	auto detector = wechat_qrcode::WeChatQRCode(
+		"detect.prototxt",
+		"detect.caffemodel",
+		"sr.prototxt",
+		"sr.caffemodel"
+	);
 	auto info = detector.detectAndDecode(im, points);
 	if (info.size()) {
 		result = string(info[0].c_str());
