@@ -341,12 +341,15 @@ void MainWnd::OnRButtonDown(WPARAM wParam, LPARAM lParam)
 	}
 }
 
-void MainWnd::ParseConfig()
+void MainWnd::ParseConfig(bool use_default)
 {
 	wstring error_msg;
 	ifstream fs;
 	stringstream str_stream;
 	string raw_json;
+	if (use_default) {
+		str_stream << DEFAULT_CONFIG;
+	}
 
 	fs.open(config_filename);
 	if (fs.is_open()) {
@@ -432,14 +435,18 @@ void MainWnd::ParseConfig()
 
 	// will reach this point when an error occurs
 	// _parse_error:
-	error_msg += L"\nParsing config failed, will use default settings instead.";
-	MessageBox(hwnd, error_msg.c_str(), CAPTION_NAME, MB_OK);
+	if (error_msg.length()) {
+		error_msg += L"\n";
+	}
+	error_msg += L"Parsing config failed, falling back to the default settings.";
+	MessageBox(hwnd, error_msg.c_str(), CAPTION_NAME, MB_OK | MB_ICONEXCLAMATION);
 	SetDefaultConfig();
 	return;
 }
 
 void MainWnd::SetDefaultConfig()
 {
+	/*
 	DARK_COVER = Gdiplus::Color(70, 0, 0, 0);
 	AUTO_QR_BOARDER = Gdiplus::Color(255, 0, 122, 204);
 	AUTO_QR_NO_HOVER = Gdiplus::Color(30, 0, 122, 204);
@@ -454,6 +461,8 @@ void MainWnd::SetDefaultConfig()
 	key_copy_selected = 'C';
 	key_select_all = 'A';
 	key_deselect_all = 'D';
+	*/
+	this->ParseConfig(true);
 }
 
 bool MainWnd::RegHotkey()

@@ -44,7 +44,7 @@ private:
 	void OnLButtonDown(WPARAM wParam, LPARAM lParam);
 	void OnLButtonUp(WPARAM wParam, LPARAM lParam);
 	void OnRButtonDown(WPARAM wParam, LPARAM lParam);
-	void ParseConfig();
+	void ParseConfig(bool use_default = false);
 	void SetDefaultConfig();
 	bool RegHotkey();
 	void InitConstants();
@@ -152,5 +152,42 @@ private:
 	std::mutex decoded_objects_mutex;
 
 	static MainWnd* g_this;
+
+	const string DEFAULT_CONFIG = R"V0G0N(
+// -- default configuration file with default settings --
+// QRUtil will fall back to the internal hard-coded config upon parsing failure on this file
+{
+    "COLOR":{ // the color format is AARRGGBB in hexadecimal form
+       "DARK_COVER":"46000000", // a dark color that covers the entire screen
+       "AUTO_QR_BOARDER":"FF007ACC",
+       "BOARDER_THICKNESS":2.0, 
+       "AUTO_QR_NO_HOVER":"1E007ACC",
+       "AUTO_QR_HOVER":"64007ACC",
+       "AUTO_QR_SELECT": "7DF5B84C",
+       "QR_TEXT_BACKGROUND":"50000000",
+       "QR_TEXT_COLOR":"FFFFFFFF",
+       "MANUAL_OK_COLOR": "80699C52",
+       "MANUAL_NOT_OK_COLOR": "80DD5145",
+       "MANUAL_QR_BORDER": "FF007ACC",
+       "AUTO_SELECT_FILL":"1E007ACC",
+       "MODE_TEXT_COLOR":"80FFFFFF"
+    },
+    "HOTKEY":{ // hot key for capturing QR codes
+       "CTRL":true,
+       "ALT":true,
+       "SHIFT":true,
+       "VKEY":"I" // https://docs.microsoft.com/windows/desktop/inputdev/virtual-key-codes
+    },
+    "KEY":{ // define the function of keys pressed on the capture screen
+       "SELECT_ALL":"A", // KEYs are not case-sensitive
+       "DESELECT_ALL":"D",
+       "COPY_SELECTED":"C",
+       "SWITCH_MODE":"Z",
+       "EXIT_PROGRAM": "71" // hexidecimal form of the virtual key code, in this case 0x71(F2)
+    },
+    "DEFAULT_MODE": "AUTO" // or `AUTO`
+ }
+)V0G0N";
+
 
 };

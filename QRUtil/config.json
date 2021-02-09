@@ -2,13 +2,19 @@
 // QRUtil will fall back to the internal hard-coded config upon parsing failure on this file
 {
     "COLOR":{ // the color format is AARRGGBB in hexadecimal form
-       "T_DARK":"46000000", // a dark color that covers the entire screen
-       "T_QR_BOARDER":"FF007ACC",
+       "DARK_COVER":"46000000", // a dark color that covers the entire screen
+       "AUTO_QR_BOARDER":"FF007ACC",
        "BOARDER_THICKNESS":2.0, 
-       "T_QR_NO_HOVER":"1E007ACC",
-       "T_QR_HOVER":"64007ACC",
+       "AUTO_QR_NO_HOVER":"1E007ACC",
+       "AUTO_QR_HOVER":"64007ACC",
+       "AUTO_QR_SELECT": "7DF5B84C",
        "QR_TEXT_BACKGROUND":"50000000",
-       "QR_TEXT_COLOR":"FFFFFFFF"
+       "QR_TEXT_COLOR":"FFFFFFFF",
+       "MANUAL_OK_COLOR": "80699C52",
+       "MANUAL_NOT_OK_COLOR": "80DD5145",
+       "MANUAL_QR_BORDER": "FF007ACC",
+       "AUTO_SELECT_FILL":"1E007ACC",
+       "MODE_TEXT_COLOR":"80FFFFFF"
     },
     "HOTKEY":{ // hot key for capturing QR codes
        "CTRL":true,
@@ -20,6 +26,8 @@
        "SELECT_ALL":"A", // KEYs are not case-sensitive
        "DESELECT_ALL":"D",
        "COPY_SELECTED":"C",
+       "SWITCH_MODE":"Z",
        "EXIT_PROGRAM": "71" // hexidecimal form of the virtual key code, in this case 0x71(F2)
-    }
+    },
+    "DEFAULT_MODE": "MANUAL" // `MANUAL` or `AUTO`
  }
