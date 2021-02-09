@@ -100,12 +100,12 @@ Open `Proj.sln` with Visual Studio 2019 and go building.
 - [x] (Auto-detect mode) Multi-thread support. The scanner will keep scanning in the background using different parameters, new results will be pushed to the UI.
 - [x] (Manual-detect mode) Support decoding on a manually selected range using [wechat_qrcode](https://github.com/opencv/opencv_contrib/tree/master/modules/wechat_qrcode).
 
-## Licenses & Credits
+## License & Credits
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 Special thanks to the following open-source projects:
 
-- [OpenCV](https://github.com/opencv/opencv) (Apache License 2.0)
-- [ZBar](https://github.com/ZBar/ZBar) (GPL v2)
-- [wechat_qrcode](https://github.com/opencv/opencv_contrib/tree/master/modules/wechat_qrcode)
+- [OpenCV](https://github.com/opencv/opencv) and [wechat_qrcode](https://github.com/opencv/opencv_contrib/tree/master/modules/wechat_qrcode) (Apache License 2.0)
+- [ZBar](https://github.com/ZBar/ZBar) (GPL v2) 
+- [odashi/encoding](https://github.com/odashi/encoding) (MIT)
