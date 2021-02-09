@@ -165,11 +165,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Detector.cpp" />
+    <ClCompile Include="encoding\decode.cpp" />
+    <ClCompile Include="encoding\encode.cpp" />
+    <ClCompile Include="encoding\jis2unicode.cpp" />
+    <ClCompile Include="encoding\judgement.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="WndLogic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Detector.h" />
+    <ClInclude Include="encoding\encoding.h" />
+    <ClInclude Include="encoding\jis2unicode.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="WndLogic.h" />
   </ItemGroup>

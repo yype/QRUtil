@@ -370,6 +370,7 @@ void MainWnd::ParseConfig()
 				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_BOARDER"].asString(), AUTO_QR_BOARDER);
 				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_NO_HOVER"].asString(), AUTO_QR_NO_HOVER);
 				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_HOVER"].asString(), AUTO_QR_HOVER);
+				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_SELECT"].asString(), AUTO_QR_SELECT);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_BACKGROUND"].asString(), QR_TEXT_BACKGROUND);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_COLOR"].asString(), QR_TEXT_COLOR);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_OK_COLOR"].asString(), MANUAL_OK_COLOR);
@@ -636,6 +637,8 @@ void MainWnd::OnPaint(HDC hdc)
 		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
 		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 
+		SetModeText(graphics, "AUTO MODE");
+
 		decoded_objects_mutex.lock();
 		auto decoded_objects_copy = decoded_objects;
 		POINT point;
@@ -680,7 +683,7 @@ void MainWnd::OnPaint(HDC hdc)
 		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
 		Gdiplus::SolidBrush bs_no_hover(AUTO_QR_NO_HOVER);
 		Gdiplus::SolidBrush bs_hover(AUTO_QR_HOVER);
-		Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
+		Gdiplus::SolidBrush bs_select(AUTO_QR_SELECT);
 
 		for (int i = 0; i < sz; i++) {
 			Gdiplus::Point* p = reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]);
@@ -719,6 +722,8 @@ void MainWnd::OnPaint(HDC hdc)
 		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
 		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 
+		SetModeText(graphics, "MANUAL MODE");
+
 		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
 		Gdiplus::SolidBrush bs_no_hover(AUTO_QR_NO_HOVER);
 		Gdiplus::SolidBrush bs_hover(AUTO_QR_HOVER);
@@ -750,6 +755,7 @@ void MainWnd::OnPaint(HDC hdc)
 
 }
 
+
 void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
 {
 	Gdiplus::SolidBrush qr_text_background(QR_TEXT_BACKGROUND);
@@ -759,7 +765,13 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
 	RectF outrect;
 	SolidBrush   solidBrush(QR_TEXT_COLOR);
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::wstring wide = converter.from_bytes(text.c_str());
+	
+	std::wstring wide;
+	auto enc = Encoding::getEncoding((const uchar*)text.c_str(), text.size());
+	uchar dst[1000];
+	auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), text.size(), enc);
+	wide = wstring((wchar_t*)dst, len);
+	// wide = converter.from_bytes(text.c_str(), text.c_str()+text.size());
 
 	while (true) {
 		// trim the text
@@ -776,6 +788,37 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
 
 	outrect.Width = static_cast<REAL>(screen_width);
 	graphics.FillRectangle(&qr_text_background, outrect);
+	graphics.DrawString(wide.c_str(), -1, &font, outrect, NULL, &solidBrush);
+}
+
+void MainWnd::SetModeText(Gdiplus::Graphics& graphics, std::string text)
+{
+	Gdiplus::SolidBrush qr_text_background(QR_TEXT_BACKGROUND);
+	FontFamily   fontFamily(L"Microsoft YaHei");
+	Font         font(&fontFamily, 28, FontStyleBold, UnitPoint);
+	RectF        rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
+	RectF outrect;
+	SolidBrush   solidBrush(QR_TEXT_COLOR);
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::wstring wide = converter.from_bytes(text.c_str());
+
+	while (true) {
+		// trim the text
+		graphics.MeasureString(wide.c_str(), static_cast<int>(wide.length()), &font, rectF, &outrect);
+		int right = static_cast<int>(outrect.GetRight());
+		if (right < screen_width / 2) {
+			break;
+		}
+		wide.pop_back();
+		wide[wide.length() - 1] = '.';
+		wide[wide.length() - 2] = '.';
+		wide[wide.length() - 3] = '.';
+	}
+
+	//outrect.Width = static_cast<REAL>(screen_width);
+	outrect.X = (screen_width /2) - (outrect.Width /2 );
+	outrect.Y = screen_height - outrect.Height*2;
+	// graphics.FillRectangle(&qr_text_background, outrect);
 	graphics.DrawString(wide.c_str(), -1, &font, outrect, NULL, &solidBrush);
 }
 

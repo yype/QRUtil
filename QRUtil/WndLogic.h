@@ -17,6 +17,7 @@
 #include <mutex>
 
 #include "Detector.h"
+#include "encoding/encoding.h"
 #pragma comment(lib, "gdiplus.lib")
 
 using namespace std;
@@ -59,6 +60,7 @@ private:
 	void GetScreenRes(int& height, int& width);
 	void OnPaint(HDC hdc);
 	void SetHintText(Gdiplus::Graphics& graphics, std::string text);
+	void SetModeText(Gdiplus::Graphics& graphics, std::string text);
 	bool CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y);
 	static void OnTimer(
 		HWND hwnd,
@@ -131,6 +133,7 @@ private:
 	Gdiplus::Color MANUAL_OK_COLOR;
 	Gdiplus::Color MANUAL_NOT_OK_COLOR;
 	Gdiplus::Color MANUAL_QR_BORDER;
+	Gdiplus::Color AUTO_QR_SELECT;
 
 	bool hotkey_ctrl;
 	bool hotkey_alt;

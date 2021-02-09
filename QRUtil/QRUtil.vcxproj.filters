@@ -24,6 +24,18 @@
     <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="encoding\decode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="encoding\encode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="encoding\jis2unicode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="encoding\judgement.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WndLogic.h">
@@ -33,6 +45,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="encoding\encoding.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="encoding\jis2unicode.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

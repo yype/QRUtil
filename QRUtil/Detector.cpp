@@ -150,7 +150,7 @@ bool Detector::DetectQRWeChat(HDC hdc, int x1, int y1, int x2, int y2, std::stri
 		"E:\\opencv\\opencv\\newbuild\\downloads\\wechat_qrcode\\sr.caffemodel");
 	auto info = detector.detectAndDecode(im, points);
 	if (info.size()) {
-		result = info[0];
+		result = string(info[0].c_str());
 		return true;
 	}
 
