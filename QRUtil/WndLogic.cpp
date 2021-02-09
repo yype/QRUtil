@@ -104,6 +104,7 @@ void MainWnd::SwitchMode()
 		current_mode = DETECT_MODE::AUTO_DETECT;
 		this->BeginDetectQRCodes();
 	}
+	RefreshWindow();
 }
 
 void MainWnd::SelectAllQRCodes(bool select)
@@ -307,6 +308,10 @@ void MainWnd::OnLButtonUp(WPARAM wParam, LPARAM lParam)
 void MainWnd::OnRButtonDown(WPARAM wParam, LPARAM lParam)
 {
 	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		if (!detect_qr_lock.try_lock()) {
+			return;
+		}
+		detect_qr_lock.unlock();
 		decoded_objects_mutex.lock();
 		auto decoded_objects_copy = decoded_objects;
 		auto sz = decoded_objects_copy.size();
@@ -373,8 +378,10 @@ void MainWnd::ParseConfig()
 				success &= ARGBString2Color(root["COLOR"]["AUTO_QR_SELECT"].asString(), AUTO_QR_SELECT);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_BACKGROUND"].asString(), QR_TEXT_BACKGROUND);
 				success &= ARGBString2Color(root["COLOR"]["QR_TEXT_COLOR"].asString(), QR_TEXT_COLOR);
+				success &= ARGBString2Color(root["COLOR"]["MODE_TEXT_COLOR"].asString(), MODE_TEXT_COLOR);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_OK_COLOR"].asString(), MANUAL_OK_COLOR);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_NOT_OK_COLOR"].asString(), MANUAL_NOT_OK_COLOR);
+				success &= ARGBString2Color(root["COLOR"]["AUTO_SELECT_FILL"].asString(), AUTO_SELECT_FILL);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_QR_BORDER"].asString(), MANUAL_QR_BORDER);
 				success &= root["COLOR"].isMember("BOARDER_THICKNESS");
 
@@ -391,6 +398,12 @@ void MainWnd::ParseConfig()
 				success &= root["KEY"].isMember("COPY_SELECTED");
 				success &= root["KEY"].isMember("EXIT_PROGRAM");
 				success &= root["KEY"].isMember("SWITCH_MODE");
+				success &= root.isMember("DEFAULT_MODE");
+				auto mode = root["DEFAULT_MODE"].asString();
+				if (mode != "AUTO" && mode != "MANUAL") {
+					success &= false;
+				}
+				current_mode = (mode == "AUTO") ? DETECT_MODE::AUTO_DETECT : DETECT_MODE::MANUAL_DETECT;
 
 				BOARDER_THICKNESS = root["COLOR"]["BOARDER_THICKNESS"].asFloat();
 				hotkey_ctrl = root["HOTKEY"]["CTRL"].asBool();
@@ -725,8 +738,7 @@ void MainWnd::OnPaint(HDC hdc)
 		SetModeText(graphics, "MANUAL MODE");
 
 		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
-		Gdiplus::SolidBrush bs_no_hover(AUTO_QR_NO_HOVER);
-		Gdiplus::SolidBrush bs_hover(AUTO_QR_HOVER);
+		Gdiplus::SolidBrush bs_fill(AUTO_SELECT_FILL);
 		Gdiplus::SolidBrush bs_ok(MANUAL_OK_COLOR);
 		Gdiplus::SolidBrush bs_notok(MANUAL_NOT_OK_COLOR);
 
@@ -746,6 +758,9 @@ void MainWnd::OnPaint(HDC hdc)
 				else {
 					graphics.FillRectangle(&bs_notok, min_x, min_y, max_x - min_x, max_y - min_y);
 				}
+			}
+			else {
+				graphics.FillRectangle(&bs_fill, min_x, min_y, max_x - min_x, max_y - min_y);
 			}
 			
 		}
@@ -798,7 +813,7 @@ void MainWnd::SetModeText(Gdiplus::Graphics& graphics, std::string text)
 	Font         font(&fontFamily, 28, FontStyleBold, UnitPoint);
 	RectF        rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
 	RectF outrect;
-	SolidBrush   solidBrush(QR_TEXT_COLOR);
+	SolidBrush   solidBrush(MODE_TEXT_COLOR);
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	std::wstring wide = converter.from_bytes(text.c_str());
 
@@ -872,7 +887,7 @@ LRESULT MainWnd::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if(g_this->current_mode == MainWnd::DETECT_MODE::AUTO_DETECT) {
 				bool ret = g_this->CopySelectedQRData2Clipboard();
 				if (!ret) {
-					MessageBox(hwnd, L"Copy to clipboard failed.", g_this->CAPTION_NAME, MB_OK | MB_ICONEXCLAMATION);
+					MessageBox(hwnd, L"Copy to clipboard failed.\nPlease select the QR codes that you want to copy first.", g_this->CAPTION_NAME, MB_OK | MB_ICONEXCLAMATION);
 				}
 				else {
 					g_this->HideWindow();

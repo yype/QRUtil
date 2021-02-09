@@ -130,8 +130,10 @@ private:
 	Gdiplus::Color AUTO_QR_HOVER;
 	Gdiplus::Color QR_TEXT_BACKGROUND;
 	Gdiplus::Color QR_TEXT_COLOR;
+	Gdiplus::Color MODE_TEXT_COLOR;
 	Gdiplus::Color MANUAL_OK_COLOR;
 	Gdiplus::Color MANUAL_NOT_OK_COLOR;
+	Gdiplus::Color AUTO_SELECT_FILL;
 	Gdiplus::Color MANUAL_QR_BORDER;
 	Gdiplus::Color AUTO_QR_SELECT;
 
