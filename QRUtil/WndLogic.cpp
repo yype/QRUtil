@@ -384,7 +384,7 @@ void MainWnd::ParseConfig(bool use_default)
 				success &= ARGBString2Color(root["COLOR"]["MODE_TEXT_COLOR"].asString(), MODE_TEXT_COLOR);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_OK_COLOR"].asString(), MANUAL_OK_COLOR);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_NOT_OK_COLOR"].asString(), MANUAL_NOT_OK_COLOR);
-				success &= ARGBString2Color(root["COLOR"]["AUTO_SELECT_FILL"].asString(), AUTO_SELECT_FILL);
+				success &= ARGBString2Color(root["COLOR"]["MANUAL_SELECT_FILL"].asString(), MANUAL_SELECT_FILL);
 				success &= ARGBString2Color(root["COLOR"]["MANUAL_QR_BORDER"].asString(), MANUAL_QR_BORDER);
 				success &= root["COLOR"].isMember("BOARDER_THICKNESS");
 
@@ -747,7 +747,7 @@ void MainWnd::OnPaint(HDC hdc)
 		SetModeText(graphics, "MANUAL MODE");
 
 		Gdiplus::Pen pen(AUTO_QR_BOARDER, BOARDER_THICKNESS);
-		Gdiplus::SolidBrush bs_fill(AUTO_SELECT_FILL);
+		Gdiplus::SolidBrush bs_fill(MANUAL_SELECT_FILL);
 		Gdiplus::SolidBrush bs_ok(MANUAL_OK_COLOR);
 		Gdiplus::SolidBrush bs_notok(MANUAL_NOT_OK_COLOR);
 
