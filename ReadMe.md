@@ -89,7 +89,9 @@ cmake --build . --config Release
 
 Copy x64 libs from [ZBarWin64](https://github.com/dani4/ZBarWin64/tree/master/lib) to `<ZBAR_DIR>/lib`.
 
-Copy `wechat_qrcode.hpp`(from source) to `$(OPENCV_DIR)/../../include`, copy `opencv_wechat_qrcode420d.lib`,`opencv_wechat_qrcode420.lib`(built) to `$(OPENCV_DIR)/lib`.
+Copy `wechat_qrcode.hpp`(from source) to `$(OPENCV_DIR)/../../include`.
+
+Copy `opencv_wechat_qrcode420d.lib`,`opencv_wechat_qrcode420.lib`(built) to `$(OPENCV_DIR)/lib`.
 
 **Build**
 
