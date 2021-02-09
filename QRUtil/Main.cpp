@@ -30,9 +30,14 @@ int WINAPI wWinMain(
 		MessageBox(0, err.c_str(), L"QRUtil", MB_OK);
 		return 0;
 	}
-
-	if (!main_window->init_error)
-		return main_window->DoEvent();
-	else
-		return EXIT_FAILURE;
+	int ret = 0;
+	if (!main_window->init_error) {
+		ret = main_window->DoEvent();
+		
+	}	
+	else {
+		ret = EXIT_FAILURE;
+	}
+	delete main_window;
+	return ret;
 }

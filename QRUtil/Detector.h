@@ -4,6 +4,7 @@
 #include <zbar.h>
 #include <Windows.h>
 #include <opencv2/core.hpp>
+#include <opencv2/wechat_qrcode.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "Detector.h"
@@ -17,11 +18,11 @@ class Detector {
 public:
 	struct DecodedObject
 	{
-		string type;
+		//string type;
 		string data;
 		vector <cv::Point> location;
 		bool operator==(const DecodedObject& right) const {
-			if ((this->type == right.type) && (this->data == right.data)) {
+			if (this->data == right.data) {
 				for (int i = 0; i < 4;i++) {
 					if (abs(location[i].x - right.location[i].x) > 4) {
 						return false;
@@ -35,7 +36,10 @@ public:
 			return false;
 		};
 	} ;
-	int DetectQR(HDC hdc, int width, int height, int thrd, vector<DecodedObject>& decoded_objects);
+	int DetectQRZbar(HDC hdc, int width, int height, int thrd, vector<DecodedObject>& decoded_objects);
+
+	// Although wechat detector can detect multiple targets, we only pick one.
+	bool DetectQRWeChat(HDC hdc, int x1, int y1, int x2, int y2, std::string &result);
 
 	Detector();
 	~Detector();

@@ -154,18 +154,20 @@ bool MainWnd::CheckSingle()
 void MainWnd::ShowCaptureWindow()
 {
 	if (is_capture_window_shown) return;
+	this->SetFullScreen();
 	is_capture_window_shown = true;
-
 	this->CaptureScreen();
 
-	decoded_objects.clear();
-	if (hover_state) delete(hover_state);
-	if (select_state) delete(select_state);
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		decoded_objects.clear();
+		this->BeginDetectQRCodes();
+	}
 
-	this->SetFullScreen();
-	//this->DetectQRCodes();
-	this->BeginDetectQRCodes();
-
+	if (current_mode == DETECT_MODE::MANUAL_DETECT) {
+		starting_point = ending_point;
+		waiting_for_ending_point = false;
+		successfully_detected = false;
+	}
 
 	// stay on top
 	SetTimer(hwnd, TIMER_EVENTS::ID2, this->timer2_interval, (TIMERPROC)this->OnTimer);
@@ -180,55 +182,142 @@ void MainWnd::RefreshWindow()
 
 void MainWnd::OnMouseMove(WPARAM wParam, LPARAM lParam)
 {
-	decoded_objects_mutex.lock();
-	auto decoded_objects_copy = decoded_objects;
-	decoded_objects_mutex.unlock();
-
 	auto x = GET_X_LPARAM(lParam);
 	auto y = GET_Y_LPARAM(lParam);
-	bool found = false;
-	for (int i = 0; i < decoded_objects_copy.size(); i++) {
-		if (!found && CheckHover((Gdiplus::Point*)(&decoded_objects_copy[i].location[0]), x, y)) {
-			found = true;
-			hover_state[i] = true;
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		decoded_objects_mutex.lock();
+		auto decoded_objects_copy = decoded_objects;
+		auto sz = decoded_objects_copy.size();
+		bool* hover_state_tmp = new bool[sz];
+		bool* select_state_tmp = new bool[sz];
+		memcpy(hover_state_tmp, hover_state, sz);
+		memcpy(select_state_tmp, select_state, sz);
+		decoded_objects_mutex.unlock();
+
+		
+		bool found = false;
+		for (int i = 0; i < decoded_objects_copy.size(); i++) {
+			if (!found && CheckHover((Gdiplus::Point*)(&decoded_objects_copy[i].location[0]), x, y)) {
+				found = true;
+				hover_state[i] = true;
+			}
+			else {
+				hover_state[i] = false;
+			}
 		}
-		else {
-			hover_state[i] = false;
+
+		decoded_objects_mutex.lock();
+		memcpy(hover_state, hover_state_tmp, sz);
+		memcpy(select_state, select_state_tmp, sz);
+		decoded_objects_mutex.unlock();
+		delete[] hover_state_tmp;
+		delete[] select_state_tmp;
+
+		RefreshWindow();
+	}
+	if (current_mode == DETECT_MODE::MANUAL_DETECT) {
+		if (waiting_for_ending_point) {
+			ending_point.x = x;
+			ending_point.y = y;
+
+			successfully_detected = false;
+			RefreshWindow();
 		}
 	}
-	RefreshWindow();
+
 }
 
 void MainWnd::OnLButtonDown(WPARAM wParam, LPARAM lParam)
 {
-	decoded_objects_mutex.lock();
-	auto decoded_objects_copy = decoded_objects;
-	decoded_objects_mutex.unlock();
-
 	auto x = GET_X_LPARAM(lParam);
 	auto y = GET_Y_LPARAM(lParam);
-	for (int i = 0; i < decoded_objects_copy.size(); i++) {
-		if (CheckHover(reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]), x, y)) {
-			SetClipboardText(decoded_objects_copy[i].data);
-			HideWindow();
-			break;
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		decoded_objects_mutex.lock();
+		auto decoded_objects_copy = decoded_objects;
+		decoded_objects_mutex.unlock();
+
+		
+		for (int i = 0; i < decoded_objects_copy.size(); i++) {
+			if (CheckHover(reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]), x, y)) {
+				SetClipboardText(decoded_objects_copy[i].data);
+				HideWindow();
+				break;
+			}
 		}
+	}
+
+	if (current_mode == DETECT_MODE::MANUAL_DETECT) {
+		if (successfully_detected) {
+			prev_starting_point = starting_point;
+			prev_ending_point = ending_point;
+		}
+		starting_point.x = ending_point.x = x;
+		starting_point.y = ending_point.y = y;
+		waiting_for_ending_point = true;
+	}
+}
+
+void MainWnd::OnLButtonUp(WPARAM wParam, LPARAM lParam)
+{
+	if (current_mode == DETECT_MODE::MANUAL_DETECT) {
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+		if (waiting_for_ending_point) {
+			ending_point.x = x;
+			ending_point.y = y;
+			waiting_for_ending_point = false;
+			if (starting_point != ending_point) {
+				Detector dt;
+				this->successfully_detected = dt.DetectQRWeChat(hdc_used_to_detect_qrcodes,
+					starting_point.x, starting_point.y,
+					ending_point.x, ending_point.y,
+					this->decoded_string
+				);
+			}
+			else {
+				if (successfully_detected) {
+					if ( ((x-prev_starting_point.x)*(x-prev_ending_point.x) <0) && 
+						((y-prev_ending_point.y)*(y-prev_starting_point.y)<0) ) { // clicked on the selected range
+						SetClipboardText(decoded_string);
+						HideWindow();
+					}
+				}
+			}
+			
+		}
+		RefreshWindow();
 	}
 }
 
 void MainWnd::OnRButtonDown(WPARAM wParam, LPARAM lParam)
 {
-	decoded_objects_mutex.lock();
-	auto decoded_objects_copy = decoded_objects;
-	decoded_objects_mutex.unlock();
-	auto x = GET_X_LPARAM(lParam);
-	auto y = GET_Y_LPARAM(lParam);
-	for (int i = 0; i < decoded_objects_copy.size(); i++) {
-		if (CheckHover(reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]), x, y)) {
-			select_state[i] = !select_state[i];
-			RefreshWindow();
-			break;
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+		decoded_objects_mutex.lock();
+		auto decoded_objects_copy = decoded_objects;
+		auto sz = decoded_objects_copy.size();
+		bool* hover_state_tmp = new bool[sz];
+		bool* select_state_tmp = new bool[sz];
+		memcpy(hover_state_tmp, hover_state, sz);
+		memcpy(select_state_tmp, select_state, sz);
+		decoded_objects_mutex.unlock();
+
+
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+		for (int i = 0; i < decoded_objects_copy.size(); i++) {
+			if (CheckHover(reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]), x, y)) {
+				select_state_tmp[i] = !select_state_tmp[i];
+				RefreshWindow();
+				break;
+			}
 		}
+
+		decoded_objects_mutex.lock();
+		memcpy(hover_state, hover_state_tmp, sz);
+		memcpy(select_state, select_state_tmp, sz);
+		decoded_objects_mutex.unlock();
+		delete[] hover_state_tmp;
+		delete[] select_state_tmp;
 	}
 }
 
@@ -413,16 +502,6 @@ void MainWnd::CaptureScreen()
 	BitBlt(hdc_used_to_detect_qrcodes, 0, 0, screen_width, screen_height, hdc, 0, 0, SRCCOPY);
 	BitBlt(displayed_screen_hdc, 0, 0, screen_width, screen_height, hdc, 0, 0, SRCCOPY);
 
-
-#ifdef DEBUG
-	Bitmap bmp(hbDesktop, 0);
-	CLSID pngClsid;
-	CLSIDFromString(L"{557CF406-1A04-11D3-9A73-0000F81EF32E}", // PNG
-		&pngClsid
-	);
-	bmp.Save(L"srcshot.png", &pngClsid, NULL);
-#endif
-
 	ReleaseDC(NULL, hdc);
 	// MessageBox(0, L"done", L"none", MB_OK);
 }
@@ -433,15 +512,22 @@ void MainWnd::DetectQRCodes()
 		return;
 	}
 	Detector dt;
-	for (int thrd = 5; thrd < 255; thrd += 5) {
+	vector<Detector::DecodedObject> decoded_objects_tmp;
+	for (int thrd = 0; thrd < 256; thrd += 5) {
 		if (!is_capture_window_shown) break;
-		dt.DetectQR(hdc_used_to_detect_qrcodes, screen_width, screen_height, thrd, decoded_objects);
+		dt.DetectQRZbar(hdc_used_to_detect_qrcodes, screen_width, screen_height, thrd, decoded_objects_tmp);
+
 		decoded_objects_mutex.lock();
-		hover_state = new bool[decoded_objects.size()];
-		ZeroMemory(hover_state, decoded_objects.size() * sizeof(bool));
-		select_state = new bool[decoded_objects.size()];
-		ZeroMemory(select_state, decoded_objects.size() * sizeof(bool));
+		auto sz = decoded_objects_tmp.size();
+		if (sz) {
+			hover_state = new bool[sz];
+			ZeroMemory(hover_state, sz * sizeof(bool));
+			select_state = new bool[sz];
+			ZeroMemory(select_state, sz * sizeof(bool));
+		}
+		decoded_objects = decoded_objects_tmp;
 		decoded_objects_mutex.unlock();
+		
 		RefreshWindow();
 	}
 	detect_qr_lock.unlock();
@@ -515,55 +601,132 @@ void MainWnd::GetScreenRes(int& height, int& width)
 
 void MainWnd::OnPaint(HDC hdc)
 {
+	if (current_mode == DETECT_MODE::AUTO_DETECT) {
+
+		// captured screen
+		auto ret = BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, displayed_screen_hdc, 0, 0, SRCCOPY);
 
 
-	// captured screen
-	auto ret = BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, displayed_screen_hdc, 0, 0, SRCCOPY);
+		Gdiplus::Graphics graphics(hdc);
+		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 
+		// dark hover
+		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
+		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
+		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 
-	Gdiplus::Graphics graphics(hdc);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-
-	// dark hover
-	Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
-	graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
-	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-
-	if (!detect_qr_lock.try_lock()) {
-		SetHintText(graphics, "Detecting...");
-	}
-	else {
-		detect_qr_lock.unlock();
-	}
-
-	decoded_objects_mutex.lock();
-	auto decoded_objects_copy = decoded_objects;
-	decoded_objects_mutex.unlock();
-
-	Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
-	Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
-	Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
-	Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
-
-	for (int i = 0; i < decoded_objects_copy.size(); i++) {
-		Gdiplus::Point* p = reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]);
-		int count = static_cast<int>(decoded_objects_copy[i].location.size()); // must be 4 (edges of a rectangle)
-		graphics.DrawPolygon(&pen, p, count);
-		if (hover_state[i])
-			graphics.FillPolygon(&bs_hover, p, count);
-		else
-			graphics.FillPolygon(&bs_no_hover, p, count);
-
-		if (select_state[i])
-			graphics.FillPolygon(&bs_select, p, count);
-
-	}
-	for (int i = 0; i < decoded_objects_copy.size(); i++) {
-		if (hover_state[i]) {
-			SetHintText(graphics, decoded_objects_copy[i].data);
-			break;
+		decoded_objects_mutex.lock();
+		auto decoded_objects_copy = decoded_objects;
+		POINT point;
+		GetCursorPos(&point);
+		bool found = false;
+		for (int i = 0; i < decoded_objects_copy.size(); i++) {
+			if (!found && CheckHover((Gdiplus::Point*)(&decoded_objects_copy[i].location[0]), point.x, point.y)) {
+				found = true;
+				hover_state[i] = true;
+			}
+			else {
+				hover_state[i] = false;
+			}
 		}
+		auto sz = decoded_objects_copy.size();
+		bool* hover_state_tmp = new bool[sz];
+		bool* select_state_tmp = new bool[sz];
+		memcpy(hover_state_tmp, hover_state, sz);
+		memcpy(select_state_tmp, select_state, sz);
+		decoded_objects_mutex.unlock();
+
+		if (!detect_qr_lock.try_lock()) {
+			// check if on hover
+			bool not_hovered = true;
+			for (int i = 0; i < sz; i++) {
+				if (hover_state_tmp[i] == true) {
+					not_hovered = false;
+					break;
+				}
+			}
+			if (not_hovered) {
+				SetHintText(graphics, "Detecting...");
+			}
+
+		}
+		else {
+			detect_qr_lock.unlock();
+		}
+
+
+
+		Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
+		Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
+		Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
+		Gdiplus::SolidBrush bs_select(Color(125, 245, 184, 76));
+
+		for (int i = 0; i < sz; i++) {
+			Gdiplus::Point* p = reinterpret_cast<Gdiplus::Point*>(&decoded_objects_copy[i].location[0]);
+			int count = static_cast<int>(decoded_objects_copy[i].location.size()); // must be 4 (edges of a rectangle)
+			graphics.DrawPolygon(&pen, p, count);
+			if (hover_state_tmp[i])
+				graphics.FillPolygon(&bs_hover, p, count);
+			else
+				graphics.FillPolygon(&bs_no_hover, p, count);
+
+			if (select_state_tmp[i])
+				graphics.FillPolygon(&bs_select, p, count);
+
+		}
+		for (int i = 0; i < sz; i++) {
+			if (hover_state_tmp[i]) {
+				SetHintText(graphics, decoded_objects_copy[i].data);
+				break;
+			}
+		}
+		delete[] select_state_tmp;
+		delete[] hover_state_tmp;
+
 	}
+
+	if (current_mode == DETECT_MODE::MANUAL_DETECT) {
+		// captured screen
+		auto ret = BitBlt(hdc, 0, 0, this->screen_width, this->screen_height, displayed_screen_hdc, 0, 0, SRCCOPY);
+
+
+		Gdiplus::Graphics graphics(hdc);
+		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+
+		// dark hover
+		Gdiplus::Brush* dark_bs = new Gdiplus::SolidBrush(T_DARK);
+		graphics.FillRectangle(dark_bs, 0, 0, screen_width, screen_height);
+		graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+
+		Gdiplus::Pen pen(T_QR_BOARDER, BOARDER_THICKNESS);
+		Gdiplus::SolidBrush bs_no_hover(T_QR_NO_HOVER);
+		Gdiplus::SolidBrush bs_hover(T_QR_HOVER);
+		Gdiplus::SolidBrush bs_ok(Color(125, 23, 212, 107));
+		Gdiplus::SolidBrush bs_notok(Color(125, 221, 81, 69));
+
+
+		if (starting_point != ending_point) {
+			auto min_x = MIN(starting_point.x, ending_point.x);
+			auto max_x = MAX(starting_point.x, ending_point.x);
+			auto min_y = MIN(starting_point.y, ending_point.y);
+			auto max_y = MAX(starting_point.y, ending_point.y);
+			graphics.DrawRectangle(&pen, min_x, min_y, max_x - min_x, max_y - min_y);
+
+			if (!waiting_for_ending_point) {
+				if (successfully_detected) {
+					graphics.FillRectangle(&bs_ok, min_x, min_y, max_x - min_x, max_y - min_y);
+					SetHintText(graphics, decoded_string);
+				}
+				else {
+					graphics.FillRectangle(&bs_notok, min_x, min_y, max_x - min_x, max_y - min_y);
+				}
+			}
+			
+		}
+		
+		
+	}
+
 }
 
 void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
@@ -630,6 +793,9 @@ LRESULT MainWnd::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_LBUTTONDOWN:
 		g_this->OnLButtonDown(wParam, lParam);
+		break;
+	case WM_LBUTTONUP:
+		g_this->OnLButtonUp(wParam, lParam);
 		break;
 	case WM_RBUTTONDOWN:
 		g_this->OnRButtonDown(wParam, lParam);

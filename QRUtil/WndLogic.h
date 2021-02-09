@@ -40,6 +40,7 @@ private:
 	void RefreshWindow();
 	void OnMouseMove(WPARAM wParam, LPARAM lParam);
 	void OnLButtonDown(WPARAM wParam, LPARAM lParam);
+	void OnLButtonUp(WPARAM wParam, LPARAM lParam);
 	void OnRButtonDown(WPARAM wParam, LPARAM lParam);
 	void ParseConfig();
 	void SetDefaultConfig();
@@ -95,9 +96,28 @@ private:
 		ID1, ID2
 	};
 
+	enum class DETECT_MODE {
+		MANUAL_DETECT,
+		AUTO_DETECT
+	};
+
+	DETECT_MODE current_mode = DETECT_MODE::MANUAL_DETECT;
+
+	// ------------------------------------------------
+	// AUTO_DETECT
 	vector<Detector::DecodedObject> decoded_objects;
 	bool* hover_state = nullptr;
 	bool* select_state = nullptr;
+	// ------------------------------------------------
+
+	// ------------------------------------------------
+	// MANUAL_DETECT
+	bool waiting_for_ending_point = false;
+	cv::Point prev_starting_point, prev_ending_point; // two corners specified by the user
+	cv::Point starting_point, ending_point; // two corners specified by the user
+	bool successfully_detected = false;
+	std::string decoded_string;
+	// ------------------------------------------------
 
 	// Configurable parameters
 	Gdiplus::Color T_DARK;
