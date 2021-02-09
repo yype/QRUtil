@@ -789,13 +789,20 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
 	RectF outrect;
 	SolidBrush   solidBrush(QR_TEXT_COLOR);
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	
+
+#ifdef _DEBUG
+	if (text[0] == 'h') {
+		cout << "debug";
+	}
+#endif
+
 	std::wstring wide;
 	auto enc = Encoding::getEncoding((const uchar*)text.c_str(), text.size());
 	uchar dst[1000];
 	auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), text.size(), enc);
 	wide = wstring((wchar_t*)dst, len);
 	// wide = converter.from_bytes(text.c_str(), text.c_str()+text.size());
+
 
 	while (true) {
 		// trim the text
