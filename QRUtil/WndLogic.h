@@ -133,7 +133,7 @@ private:
 	Gdiplus::Color MODE_TEXT_COLOR;
 	Gdiplus::Color MANUAL_OK_COLOR;
 	Gdiplus::Color MANUAL_NOT_OK_COLOR;
-	Gdiplus::Color AUTO_SELECT_FILL;
+	Gdiplus::Color MANUAL_SELECT_FILL;
 	Gdiplus::Color MANUAL_QR_BORDER;
 	Gdiplus::Color AUTO_QR_SELECT;
 
@@ -157,20 +157,20 @@ private:
 // -- default configuration file with default settings --
 // QRUtil will fall back to the internal hard-coded config upon parsing failure on this file
 {
-    "COLOR":{ // the color format is AARRGGBB in hexadecimal form
-       "DARK_COVER":"46000000", // a dark color that covers the entire screen
-       "AUTO_QR_BOARDER":"FF007ACC",
+    "COLOR":{ // The color format is AARRGGBB in hexadecimal form
+       "DARK_COVER":"46000000", // A dark color that covers the entire screen
+       "AUTO_QR_BOARDER":"FF007ACC", // Border color of the QR boxes (AUTO MODE)
        "BOARDER_THICKNESS":2.0, 
-       "AUTO_QR_NO_HOVER":"1E007ACC",
+       "AUTO_QR_NO_HOVER":"1E007ACC", // Color of the QR boxes when not under hover (AUTO MODE)
        "AUTO_QR_HOVER":"64007ACC",
-       "AUTO_QR_SELECT": "7DF5B84C",
-       "QR_TEXT_BACKGROUND":"50000000",
-       "QR_TEXT_COLOR":"FFFFFFFF",
-       "MANUAL_OK_COLOR": "80699C52",
-       "MANUAL_NOT_OK_COLOR": "80DD5145",
-       "MANUAL_QR_BORDER": "FF007ACC",
-       "AUTO_SELECT_FILL":"1E007ACC",
-       "MODE_TEXT_COLOR":"80FFFFFF"
+       "AUTO_QR_SELECT": "7DF5B84C", // Color of the QR boxes when selected (AUTO MODE)
+       "QR_TEXT_BACKGROUND":"50000000", // Color of the background for the decoded hint text
+       "QR_TEXT_COLOR":"FFFFFFFF", // Color of the decoded hint text
+       "MANUAL_OK_COLOR": "80699C52", // Color of the selected range when successfully detected (MANUAL MODE)
+       "MANUAL_NOT_OK_COLOR": "80DD5145", 
+       "MANUAL_QR_BORDER": "FF007ACC", // Color of the selected range's border (MANUAL MODE)
+       "MANUAL_SELECT_FILL":"1E007ACC", // Color of the selected range when still selecting (MANUAL MODE)
+       "MODE_TEXT_COLOR":"80FFFFFF" // Color of the text color for the mode text (i.e. `MANUAL MODE` or `AUTO MODE`)
     },
     "HOTKEY":{ // hot key for capturing QR codes
        "CTRL":true,
@@ -185,7 +185,7 @@ private:
        "SWITCH_MODE":"Z",
        "EXIT_PROGRAM": "71" // hexidecimal form of the virtual key code, in this case 0x71(F2)
     },
-    "DEFAULT_MODE": "AUTO" // or `AUTO`
+    "DEFAULT_MODE": "MANUAL" // `MANUAL` or `AUTO`
  }
 )V0G0N";
 
