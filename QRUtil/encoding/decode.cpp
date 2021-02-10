@@ -4,12 +4,12 @@
 
 namespace {
 	// UTF-16 LE/BE decoder
-	unsigned int decode_utf16(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size)
+	unsigned short decode_utf16(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size)
 	{
 		int high = 1, low = 0; // for endian
 		unsigned char b1, b2;
 		int code1, code2;
-		unsigned int len = 0;
+		unsigned short len = 0;
 
 		if (src_size < 2) return 0;
 
@@ -26,7 +26,7 @@ namespace {
 
 		if (!dest) {
 			// counting
-			for (unsigned int i = 0; i < src_size - 1; i += 2, ++len) {
+			for (unsigned short i = 0; i < src_size - 1; i += 2, ++len) {
 				code1 = ((int)src[i + high] << 8) | (int)src[i + low];
 				// end of text
 				if (code1 == 0x0000) break;
@@ -40,7 +40,7 @@ namespace {
 		}
 
 		// decoding
-		for (unsigned int i = 0; i < src_size - 1 && len < dest_size; i += 2, ++len) {
+		for (unsigned short i = 0; i < src_size - 1 && len < dest_size; i += 2, ++len) {
 			code1 = ((int)src[i + high] << 8) | (int)src[i + low];
 			// end of text
 			if (code1 == 0x0000) break;
@@ -59,10 +59,10 @@ namespace {
 	}
 
 	// UTF-8 decoder
-	unsigned int decode_utf8(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size)
+	unsigned short decode_utf8(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size)
 	{
 		unsigned char b1, b2;
-		unsigned int len = 0;
+		unsigned short len = 0;
 
 		// recognize BOM
 		if (src_size > 3)
@@ -71,7 +71,7 @@ namespace {
 
 		if (!dest) {
 			// counting
-			for (unsigned int i = 0; i < src_size; ++i, ++len) {
+			for (unsigned short i = 0; i < src_size; ++i, ++len) {
 				b1 = src[i];
 				// end of text
 				if (b1 == 0x00) break;
@@ -99,7 +99,7 @@ namespace {
 		}
 
 		// decoding
-		for (unsigned int i = 0; i < src_size && len < dest_size; ++i, ++len) {
+		for (unsigned short i = 0; i < src_size && len < dest_size; ++i, ++len) {
 			b1 = src[i];
 			// end of text
 			if (b1 == 0x00) break;
@@ -139,10 +139,10 @@ namespace {
 	}
 
 	// Shift_JIS decoder
-	unsigned int decode_shiftjis(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size)
+	unsigned short decode_shiftjis(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size)
 	{
-		const int KU_SIZE = 94;
-		const int offset[] = {
+		const short KU_SIZE = 94;
+		const short offset[] = {
 			-1,  0*KU_SIZE,  2*KU_SIZE,  4*KU_SIZE,  6*KU_SIZE,  8*KU_SIZE, 10*KU_SIZE, 12*KU_SIZE,
 			14*KU_SIZE, 16*KU_SIZE, 18*KU_SIZE, 20*KU_SIZE, 22*KU_SIZE, 24*KU_SIZE, 26*KU_SIZE, 28*KU_SIZE,
 			30*KU_SIZE, 32*KU_SIZE, 34*KU_SIZE, 36*KU_SIZE, 38*KU_SIZE, 40*KU_SIZE, 42*KU_SIZE, 44*KU_SIZE,
@@ -163,16 +163,16 @@ namespace {
 
 		unsigned char b1, b2;
 		int codepoint;
-		unsigned int len = 0;
+		unsigned short len = 0;
 
 		if (!dest) {
 			// counting
-			for (unsigned int i = 0; i < src_size; ++i, ++len) {
+			for (unsigned short i = 0; i < src_size; ++i, ++len) {
 				b1  = src[i];
 				// end of text
 				if (b1 == 0x00) break;
 				// 2 bytes sequence
-				if (Encoding::jisx0201_2_unicode[b1] == (short)Encoding::UNICODE_BAD_SEQUENCE) {
+				if (Encoding::jisx0201_2_unicode[b1] == Encoding::UNICODE_BAD_SEQUENCE) {
 					if (++i >= src_size) break;
 					b2 = src[i];
 					// correct sequence
@@ -185,12 +185,12 @@ namespace {
 		}
 
 		// decoding
-		for (unsigned int i = 0; i < src_size && len < dest_size; ++i, ++len) {
+		for (unsigned short i = 0; i < src_size && len < dest_size; ++i, ++len) {
 			b1  = src[i];
 			// end of text
 			if (b1 == 0x00) break;
 			// 1 byte sequence (ASCII & JIS X 0201)
-			if (Encoding::jisx0201_2_unicode[b1] != (short)Encoding::UNICODE_BAD_SEQUENCE)
+			if (Encoding::jisx0201_2_unicode[b1] != Encoding::UNICODE_BAD_SEQUENCE)
 				dest[len] = Encoding::jisx0201_2_unicode[b1];
 			// 2 bytes sequence (JIS X 0208)
 			else {
@@ -205,7 +205,7 @@ namespace {
 						else if (b1 == 0xf2 && b2 >= 0x80) codepoint += 6*KU_SIZE;
 						else if (b1 == 0xf4 && b2 >= 0x80) codepoint += 62*KU_SIZE;
 					}
-					dest[len] = Encoding::jisx0213_2_unicode[codepoint];
+					dest[len] = (short)Encoding::jisx0213_2_unicode[codepoint];
 				}
 				// bad sequence
 				else {
@@ -218,14 +218,14 @@ namespace {
 	}
 
 	// EUC-JP decoder
-	unsigned int decode_eucjp(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size)
+	unsigned short decode_eucjp(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size)
 	{
 		unsigned char b1, b2, b3;
-		unsigned int len = 0;
+		unsigned short len = 0;
 
 		if (!dest) {
 			// counting
-			for (unsigned int i = 0; i < src_size; ++i, ++len) {
+			for (unsigned short i = 0; i < src_size; ++i, ++len) {
 				b1 = src[i];
 				// end of text
 				if (b1 == 0x00) break;
@@ -250,7 +250,7 @@ namespace {
 		}
 
 		// decoding
-		for (unsigned int i = 0; i < src_size && len < dest_size; ++i, ++len) {
+		for (unsigned short i = 0; i < src_size && len < dest_size; ++i, ++len) {
 			b1 = src[i];
 			// end of text
 			if (b1 == 0x00) break;
@@ -288,7 +288,7 @@ namespace {
 	}
 }
 
-unsigned int Encoding::decode(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size, EncodingType encoding)
+unsigned short Encoding::decode(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size, EncodingType encoding)
 {
 	// auto encoding judgement
 	if (encoding == EncodingType::NONE) encoding = getEncoding(src, src_size);

@@ -1,7 +1,7 @@
 // judgement.cpp
 #include "encoding.h"
 
-Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned int src_size)
+Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned short src_size)
 {
 	/* basic idea:
 	 *   UTF-16LE/UTF-16BE/UTF-8 with BOM
@@ -27,12 +27,12 @@ Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned 
 	}
 
 	// find UTF-16 encoded ASCII
-	for (unsigned int i = 0; i < src_size - 1; i += 2) {
+	for (unsigned short i = 0; i < src_size - 1; i += 2) {
 		if (src[i] == 0x00 || src[i + 1] == 0x00) return EncodingType::UTF16;
 	}
 
 	// calculate UTF-8 similarity
-	for (unsigned int i = 0; i < src_size; ++i) {
+	for (unsigned short i = 0; i < src_size; ++i) {
 		b1 = src[i];
 		// 1 byte sequence
 		if (b1 <= 0x7f) {
@@ -61,7 +61,7 @@ Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned 
 	}
 
 	// calculate Shift_JIS similarity
-	for (unsigned int i = 0; i < src_size; ++i) {
+	for (unsigned short i = 0; i < src_size; ++i) {
 		b1 = src[i];
 		// 1 byte sequence
 		if (b1 <= 0x7f || (0xa1 <= b1 && b1 <= 0xdf)) ++sjis;
@@ -73,7 +73,7 @@ Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned 
 	}
 
 	// calculate EUC-JP similarity
-	for (unsigned int i = 0; i < src_size; ++i) {
+	for (unsigned short i = 0; i < src_size; ++i) {
 		b1 = src[i];
 		// 1 byte sequence
 		if (b1 <= 0x7f) ++eucjp;

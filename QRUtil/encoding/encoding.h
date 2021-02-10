@@ -37,7 +37,7 @@ namespace Encoding {
 	 * (with invalid code (0xfffd), without L'\0')
 	 * If dest is nullptr, this function only counts the necessary size of dest.
 	 */
-	unsigned int decode(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size, EncodingType encoding);
+	unsigned short decode(short *dest, unsigned short dest_size, const unsigned char *src, unsigned short src_size, EncodingType encoding);
 
 	/** Transform a specified encoding into Unicode codepoint.
 	 *
@@ -51,7 +51,7 @@ namespace Encoding {
 	 * (without L'\0')
 	 * If dest is nullptr, this function only counts the necessary size of dest.
 	 */
-	unsigned int encode(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size, EncodingType encoding);
+	unsigned short encode(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size, EncodingType encoding);
 
 	/** Guess the encoding type of text data.
 	 *
@@ -60,7 +60,7 @@ namespace Encoding {
 	 * 
 	 * @retval An EncodingType value which is guessed from src.
 	 */
-	 EncodingType getEncoding(const unsigned char *src, unsigned int src_size);
+	 EncodingType getEncoding(const unsigned char *src, unsigned short src_size);
 
 } // namespace Encoding
 

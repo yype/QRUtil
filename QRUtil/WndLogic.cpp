@@ -116,8 +116,7 @@ bool MainWnd::SetClipboardText(string text) {
     EmptyClipboard();
 
     // convert from multiple byte to wide char (UTF8 support)
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    wstring wide = converter.from_bytes(text.c_str());
+    std::wstring wide = ConvertToWString(text);
 
     size_t sz = (wide.length() + 1) * sizeof(wchar_t);
     HGLOBAL hglb_copy = GlobalAlloc(GMEM_MOVEABLE, sz);
@@ -337,7 +336,6 @@ void MainWnd::ParseConfig(bool use_default) {
 
         const auto raw_json_length = static_cast<int>(raw_json.length());
 
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
         JSONCPP_STRING err;
         Json::Value root;
@@ -345,7 +343,7 @@ void MainWnd::ParseConfig(bool use_default) {
         const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
         if (!reader->parse(raw_json.c_str(), raw_json.c_str() + raw_json_length, &root,
                            &err)) {
-            std::wstring wide = converter.from_bytes(err.c_str());
+            std::wstring wide = ConvertToWString(err);
             error_msg += L"Json parsing error:\n";
             error_msg += wide;
         } else {
@@ -403,7 +401,7 @@ void MainWnd::ParseConfig(bool use_default) {
                     return;
                 }
             } catch (exception& e) {
-                std::wstring wide = converter.from_bytes(e.what());
+                std::wstring wide = ConvertToWString(e.what());
                 error_msg += wide;
             }
         }
@@ -732,7 +730,6 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text) {
     RectF rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
     RectF outrect;
     SolidBrush solidBrush(QR_TEXT_COLOR);
-    //std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 #ifdef _DEBUG
     if (text[0] != 'D') {
@@ -740,12 +737,7 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text) {
     }
 #endif
 
-    std::wstring wide;
-    auto enc = Encoding::getEncoding((const uchar*)text.c_str(), (uint)text.size());
-    uchar dst[1000];
-    auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), (uint)text.size(), enc);
-    wide = wstring((wchar_t*)dst, len);
-    // wide = converter.from_bytes(text.c_str(), text.c_str()+text.size());
+    std::wstring wide = ConvertToWString(text);
 
     while (true) {
         // trim the text
@@ -772,14 +764,8 @@ void MainWnd::SetModeText(Gdiplus::Graphics& graphics, std::string text) {
     RectF rectF(0, 0, screen_width * 10.0f, screen_height * 1.0f);
     RectF outrect;
     SolidBrush solidBrush(MODE_TEXT_COLOR);
-    //std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    //std::wstring wide = converter.from_bytes(text.c_str());
 
-    std::wstring wide;
-    auto enc = Encoding::getEncoding((const uchar*)text.c_str(), (uint)text.size());
-    uchar dst[1000];
-    auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), (uint)text.size(), enc);
-    wide = wstring((wchar_t*)dst, len);
+    std::wstring wide = ConvertToWString(text);
 
     while (true) {
         // trim the text
@@ -817,6 +803,14 @@ bool MainWnd::CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y) {
         sum += A;
     }
     return fabs(sum - 2 * PI) < ERROR_RANGE;
+}
+
+std::wstring MainWnd::ConvertToWString(std::string text)
+{
+    auto enc = Encoding::getEncoding((const uchar*)text.c_str(), (uint)text.size());
+    uchar dst[1000];
+    auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), (uint)text.size(), enc);
+    return wstring((wchar_t*)dst, len);
 }
 
 void MainWnd::OnTimer(HWND hwnd, UINT msg, UINT_PTR identifier, DWORD elapsed_time) {

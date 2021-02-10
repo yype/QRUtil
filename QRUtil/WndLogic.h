@@ -62,6 +62,8 @@ private:
 	void SetHintText(Gdiplus::Graphics& graphics, std::string text);
 	void SetModeText(Gdiplus::Graphics& graphics, std::string text);
 	bool CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y);
+	std::wstring ConvertToWString(std::string from);
+
 	static void OnTimer(
 		HWND hwnd,
 		UINT msg, // the WM_TIMER message.

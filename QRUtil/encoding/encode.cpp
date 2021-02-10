@@ -4,28 +4,28 @@
 
 namespace {
 	// UTF-16 LE/BE encoder
-	unsigned int encode_utf16(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size)
+	unsigned short encode_utf16(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size)
 	{
 		// not implemented yet.
 		return 0;
 	}
 
 	// UTF-8 encoder
-	unsigned int encode_utf8(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size)
+	unsigned short encode_utf8(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size)
 	{
 		// not implemented yet.
 		return 0;
 	}
 
 	// Shift_JIS encoder
-	unsigned int encode_shiftjis(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size)
+	unsigned short encode_shiftjis(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size)
 	{
 		// not implemented yet.
 		return 0;
 	}
 
 	// EUC-JP encoder
-	unsigned int encode_eucjp(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size)
+	unsigned short encode_eucjp(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size)
 	{
 		// not implemented yet.
 		return 0;
@@ -33,7 +33,7 @@ namespace {
 
 }
 
-unsigned int Encoding::encode(unsigned char *dest, unsigned int dest_size, const int *src, unsigned int src_size, EncodingType encoding)
+unsigned short Encoding::encode(unsigned char *dest, unsigned short dest_size, const short *src, unsigned short src_size, EncodingType encoding)
 {
 	// dispatching
 	switch (encoding) {
