@@ -291,14 +291,14 @@ namespace {
 unsigned int Encoding::decode(short *dest, unsigned int dest_size, const unsigned char *src, unsigned int src_size, EncodingType encoding)
 {
 	// auto encoding judgement
-	if (encoding == NONE) encoding = getEncoding(src, src_size);
+	if (encoding == EncodingType::NONE) encoding = getEncoding(src, src_size);
 
 	// dispatching
 	switch (encoding) {
-	case UTF16: return ::decode_utf16(dest, dest_size, src, src_size);
-	case UTF8: return ::decode_utf8(dest, dest_size, src, src_size);
-	case SHIFTJIS: return ::decode_shiftjis(dest, dest_size, src, src_size);
-	case EUCJP: return ::decode_eucjp(dest, dest_size, src, src_size);
+	case EncodingType::UTF16: return ::decode_utf16(dest, dest_size, src, src_size);
+	case EncodingType::UTF8: return ::decode_utf8(dest, dest_size, src, src_size);
+	case EncodingType::SHIFTJIS: return ::decode_shiftjis(dest, dest_size, src, src_size);
+	case EncodingType::EUCJP: return ::decode_eucjp(dest, dest_size, src, src_size);
 	}
 
 	// unknown encoding.

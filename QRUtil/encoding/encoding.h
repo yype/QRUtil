@@ -6,7 +6,7 @@
 namespace Encoding {
 
 	/// Encoding type
-	enum EncodingType {
+	enum class EncodingType {
 		/// Unknown encoding
 		NONE = 0,
 		/// UTF-16 LE/BE encoding

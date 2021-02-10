@@ -37,10 +37,10 @@ unsigned int Encoding::encode(unsigned char *dest, unsigned int dest_size, const
 {
 	// dispatching
 	switch (encoding) {
-	case UTF16: return ::encode_utf16(dest, dest_size, src, src_size);
-	case UTF8: return ::encode_utf8(dest, dest_size, src, src_size);
-	case SHIFTJIS: return ::encode_shiftjis(dest, dest_size, src, src_size);
-	case EUCJP: return ::encode_eucjp(dest, dest_size, src, src_size);
+	case EncodingType::UTF16: return ::encode_utf16(dest, dest_size, src, src_size);
+	case EncodingType::UTF8: return ::encode_utf8(dest, dest_size, src, src_size);
+	case EncodingType::SHIFTJIS: return ::encode_shiftjis(dest, dest_size, src, src_size);
+	case EncodingType::EUCJP: return ::encode_eucjp(dest, dest_size, src, src_size);
 	}
 
 	// unknown encoding.

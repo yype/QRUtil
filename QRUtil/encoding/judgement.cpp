@@ -17,18 +17,18 @@ Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned 
 	// check UTF-16 BOM
 	if (src_size >= 2) {
 		// UTF-16 LE
-		if (src[0] == 0xff && src[1] == 0xfe) return UTF16;
+		if (src[0] == 0xff && src[1] == 0xfe) return EncodingType::UTF16;
 		// UTF-16 BE
-		if (src[0] == 0xfe && src[1] == 0xff) return UTF16;
+		if (src[0] == 0xfe && src[1] == 0xff) return EncodingType::UTF16;
 	}
 	// check UTF-8 BOM
 	if (src_size >= 3) {
-		if (src[0] == 0xef && src[1] == 0xbb && src[2] == 0xbf) return UTF8;
+		if (src[0] == 0xef && src[1] == 0xbb && src[2] == 0xbf) return EncodingType::UTF8;
 	}
 
 	// find UTF-16 encoded ASCII
 	for (unsigned int i = 0; i < src_size - 1; i += 2) {
-		if (src[i] == 0x00 || src[i + 1] == 0x00) return UTF16;
+		if (src[i] == 0x00 || src[i + 1] == 0x00) return EncodingType::UTF16;
 	}
 
 	// calculate UTF-8 similarity
@@ -90,7 +90,7 @@ Encoding::EncodingType Encoding::getEncoding(const unsigned char *src, unsigned 
 		}
 	}
 
-	if (utf8 >= sjis && utf8 >= eucjp) return UTF8;
-	if (sjis >= eucjp) return SHIFTJIS;
-	return EUCJP;
+	if (utf8 >= sjis && utf8 >= eucjp) return EncodingType::UTF8;
+	if (sjis >= eucjp) return EncodingType::SHIFTJIS;
+	return EncodingType::EUCJP;
 }
