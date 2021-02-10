@@ -791,7 +791,7 @@ void MainWnd::SetHintText(Gdiplus::Graphics& graphics, std::string text)
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 #ifdef _DEBUG
-	if (text[0] == 'h') {
+	if (text[0] != 'D') {
 		cout << "debug";
 	}
 #endif

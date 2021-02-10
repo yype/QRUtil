@@ -60,7 +60,7 @@ Color scheme and key bindings can be configured via a json formatted config file
        "DESELECT_ALL":"D",
        "COPY_SELECTED":"C",
        "SWITCH_MODE":"Z",
-       "EXIT_PROGRAM": "71" // hexidecimal form of the virtual key code, in this case 0x71(F2)
+       "EXIT_PROGRAM": "71" // hexadecimal form of the virtual key code, in this case 0x71(F2)
     },
     "DEFAULT_MODE": "MANUAL" // `MANUAL` or `AUTO`
  }
