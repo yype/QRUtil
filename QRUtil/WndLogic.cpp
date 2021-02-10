@@ -805,8 +805,7 @@ bool MainWnd::CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y) {
     return fabs(sum - 2 * PI) < ERROR_RANGE;
 }
 
-std::wstring MainWnd::ConvertToWString(std::string text)
-{
+std::wstring MainWnd::ConvertToWString(std::string text) {
     auto enc = Encoding::getEncoding((const uchar*)text.c_str(), (uint)text.size());
     uchar dst[1000];
     auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), (uint)text.size(), enc);
