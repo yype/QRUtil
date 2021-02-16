@@ -2,7 +2,7 @@
 
 **Screen QR code scanning utility for Windows.**
 
-Driven by two engines, QRUtil now has the following functionalities:
+Driven by two engines, QRUtil now has the following two modes:
 
 ### Auto detection
 
