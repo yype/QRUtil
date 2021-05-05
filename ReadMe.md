@@ -10,11 +10,11 @@ Under this mode, QRUtil supports detecting multiple QR codes on the screen simul
 
 ### Manual detection
 
-Using a strong and fast engine recently open-sourced by Tencent's team WeChatCV, QRUtil supports detecting a manual selected range, as an supplement to auto-detection.
+Using a strong and fast engine recently open-sourced by Tencent's team WeChatCV, QRUtil supports detecting a manual selected range, as a supplement to auto-detection.
 
-## Rec
+## Demo
 
-![rec](ReadMe/rec.gif)
+![demo](ReadMe/rec.gif)
 
 ## Release
 
