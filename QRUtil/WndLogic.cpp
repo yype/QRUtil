@@ -807,8 +807,9 @@ bool MainWnd::CheckHover(Gdiplus::Point* point, int mouse_x, int mouse_y) {
 
 std::wstring MainWnd::ConvertToWString(std::string text) {
     auto enc = Encoding::getEncoding((const uchar*)text.c_str(), (uint)text.size());
-    uchar dst[1000];
-    auto len = Encoding::decode((short*)dst, 1000, (const uchar*)text.c_str(), (uint)text.size(), enc);
+#define MAX_QR_SIZE 7100
+    static short dst[MAX_QR_SIZE];
+    auto len = Encoding::decode(dst, MAX_QR_SIZE, (const uchar*)text.c_str(), (uint)text.size(), enc);
     return wstring((wchar_t*)dst, len);
 }
 
